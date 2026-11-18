@@ -1,0 +1,263 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+    <base href="../" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/favicon.png">
+    <link rel="icon" href="./favicon.ico" sizes="any">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>关于对话与移动（Unity） — ninouiu</title>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ninouiu">
+    <meta property="og:title" content="关于对话与移动（Unity） — ninouiu">
+    <meta property="og:description" content="存个档，也许以后忘了还能用上。 实现像rpgmaker那样四向移动然后玩家只能跟朝向的物体才可以交互。 角色移动 [PlayerControl.cs] 1 2">
+    <meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp">
+    <meta property="og:url" content="https://game.ninouiu.com/blog/x-2023-6-1-2.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="./styles/site.css?v=06c3558828">
+  </head>
+  <body data-title="Blog" data-post-id="x-2023-6-1-2">
+    <div class="user_page_wrap">
+      <div class="user_page">
+        <header><div class="inner_column text_header"><h1><a href="./index.html"><img class="site_logo" src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt="ninouiu"></a></h1></div></header><div class="site_nav_sentinel" aria-hidden="true"></div><nav class="site_nav"><a class="site_nav_logo" href="./index.html" aria-label="ninouiu"><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt=""></a><a href="./index.html">Home</a><a href="./dev.html">Dev</a><a href="./blog.html" class="active">Blog</a></nav>
+        <main class="inner_column page_content blog_page">
+          <div class="blog_list" id="blog-list" hidden=""></div>
+          <article class="blog_post" id="blog-post"><p class="blog_date">2023.06.01</p><h1 class="blog_title">关于对话与移动（Unity）</h1><div class="blog_body markdown-content"><p>存个档，也许以后忘了还能用上。 实现像rpgmaker那样四向移动然后玩家只能跟朝向的物体才可以交互。</p>
+<h2>角色移动</h2>
+<p>[PlayerControl.cs]</p>
+<pre class="code-block" data-lang="csharp"><code class="language-csharp"><span class="code-line"><span class="tok-kw">using</span> System.Collections;</span>
+<span class="code-line"><span class="tok-kw">using</span> System.Collections.Generic;</span>
+<span class="code-line"><span class="tok-kw">using</span> UnityEngine;</span>
+<span class="code-line"> </span>
+<span class="code-line"><span class="tok-kw">public</span> <span class="tok-kw">class</span> PlayerControl : MonoBehaviour</span>
+<span class="code-line">{</span>
+<span class="code-line"> </span>
+<span class="code-line">    <span class="tok-kw">public</span> <span class="tok-kw">float</span> speed;</span>
+<span class="code-line">     <span class="tok-kw">private</span> Rigidbody2D rrigidbody;</span>
+<span class="code-line">    <span class="tok-kw">private</span> Animator animator;</span>
+<span class="code-line">    <span class="tok-kw">private</span> <span class="tok-kw">float</span> inputX, inputY;</span>
+<span class="code-line">    <span class="tok-kw">private</span> <span class="tok-kw">float</span> stopX, stopY;<span class="tok-comment">//记录角色的朝向</span></span>
+<span class="code-line">    <span class="tok-kw">public</span> <span class="tok-kw">bool</span> canmoving = <span class="tok-kw">true</span>;</span>
+<span class="code-line">    <span class="tok-comment">//public GameObject wakvoice;</span></span>
+<span class="code-line">    <span class="tok-kw">void</span> Start()</span>
+<span class="code-line">    {</span>
+<span class="code-line">        rrigidbody = GetComponent&lt;Rigidbody2D&gt;();</span>
+<span class="code-line">        animator = GetComponent&lt;Animator&gt;();</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line">    <span class="tok-kw">void</span> Update()</span>
+<span class="code-line">    {</span>
+<span class="code-line">        inputX = Input.GetAxisRaw("Horizontal");</span>
+<span class="code-line">        inputY = Input.GetAxisRaw("Vertical");</span>
+<span class="code-line">        <span class="tok-comment">//inputX=joystick.Horizontal;</span></span>
+<span class="code-line">        <span class="tok-comment">//inputY=joystick.Vertical;</span></span>
+<span class="code-line">        Vector2 qwe = <span class="tok-kw">new</span> Vector2(inputX, inputY).normalized;</span>
+<span class="code-line">        animator.SetFloat("inputX", inputX);</span>
+<span class="code-line">        animator.SetFloat("inputY", inputY);</span>
+<span class="code-line">        <span class="tok-comment">//if(inputX&gt;0||inputY&gt;0)</span></span>
+<span class="code-line">        <span class="tok-comment">//{</span></span>
+<span class="code-line">        <span class="tok-comment">//   wakvoice.SetActive(true);</span></span>
+<span class="code-line">        <span class="tok-comment">//}</span></span>
+<span class="code-line">        <span class="tok-comment">//else</span></span>
+<span class="code-line">        <span class="tok-comment">//{</span></span>
+<span class="code-line">        <span class="tok-comment">//    wakvoice.SetActive(false);</span></span>
+<span class="code-line">        <span class="tok-comment">//}</span></span>
+<span class="code-line">        rrigidbody.velocity = qwe * speed;</span>
+<span class="code-line">        </span>
+<span class="code-line"> </span>
+<span class="code-line">        <span class="tok-kw">if</span> (qwe != Vector2.zero &amp;&amp; canmoving)</span>
+<span class="code-line">        {</span>
+<span class="code-line">            animator.SetBool("isMoving", <span class="tok-kw">true</span>);</span>
+<span class="code-line">            <span class="tok-comment">//stopX = inputX;</span></span>
+<span class="code-line">            <span class="tok-comment">//stopY = inputY;</span></span>
+<span class="code-line">        }</span>
+<span class="code-line">        <span class="tok-kw">else</span></span>
+<span class="code-line">        {</span>
+<span class="code-line">            animator.SetBool("isMoving", <span class="tok-kw">false</span>);</span>
+<span class="code-line">        }</span>
+<span class="code-line">        animator.SetFloat("inputX", inputX);</span>
+<span class="code-line">        animator.SetFloat("inputY", inputY);</span>
+<span class="code-line"> </span>
+<span class="code-line">    }</span>
+<span class="code-line">}</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<p>  * 设置</p>
+<p>    * 设置角色的移动速度</p>
+<p>    * 设置角色碰撞大小</p>
+<p>    * 用blend tree设置角色动画</p>
+<h2>角色与事物交互-&gt;对话</h2>
+<h3>交互</h3>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/x-2023-6-1-2/A-184.webp" alt="" loading="lazy"></p>
+<p>用了很笨的方法，创建一个空对象</p>
+<p>  * [Player] //交互触发，碰撞设为触发器</p>
+<p>    * [voice] //激活播放声音</p>
+<p>    * [img] //角色贴图，动画，碰撞</p>
+<p>-[Player]</p>
+<p>先设置tag为PlayerChose</p>
+<p>可以单方向交互，在动画里设置，不同朝向都要修改</p>
+<p>只需要交互方向比[img]的碰撞范围大就可以了，其他方向的要在[img]碰撞范围内</p>
+<p>上面的图 [Player]碰撞范围是绿色的圈</p>
+<h3>对话</h3>
+<p>-参考<a href="&lt;a href=" https:="" space.bilibili.com="" 370283072="" channel="" seriesdetail?sid="211999&quot;" target="_blank" rel="noreferrer noopener">https://space.bilibili.com/370283072/channel/seriesdetail?sid=211999</a>" target="_blank" rel="noreferrer noopener"&gt;麦扣老师</p>
+<p>[ChoseButton.cs]</p>
+<pre class="code-block" data-lang="csharp"><code class="language-csharp"><span class="code-line"><span class="tok-kw">using</span> System.Collections;</span>
+<span class="code-line"><span class="tok-kw">using</span> System.Collections.Generic;</span>
+<span class="code-line"><span class="tok-kw">using</span> UnityEngine;</span>
+<span class="code-line"> </span>
+<span class="code-line"><span class="tok-kw">public</span> <span class="tok-kw">class</span> ChoseButton : MonoBehaviour</span>
+<span class="code-line">{</span>
+<span class="code-line">    <span class="tok-kw">public</span> GameObject Button;</span>
+<span class="code-line">    <span class="tok-kw">public</span> GameObject talkUI;</span>
+<span class="code-line">    <span class="tok-kw">public</span> GameObject Voice;</span>
+<span class="code-line">    </span>
+<span class="code-line">    <span class="tok-kw">private</span> <span class="tok-kw">void</span> OnTriggerEnter2D(Collider2D other)</span>
+<span class="code-line">    {</span>
+<span class="code-line">        <span class="tok-kw">if</span> (other.CompareTag("PlayerChose"))</span>
+<span class="code-line">            { </span>
+<span class="code-line">             Button.SetActive(<span class="tok-kw">true</span>);</span>
+<span class="code-line">            }</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line">    <span class="tok-kw">private</span> <span class="tok-kw">void</span> OnTriggerExit2D(Collider2D other)</span>
+<span class="code-line">    {</span>
+<span class="code-line">        <span class="tok-kw">if</span> (other.CompareTag("PlayerChose"))</span>
+<span class="code-line">            {</span>
+<span class="code-line">            Button.SetActive(<span class="tok-kw">false</span>);</span>
+<span class="code-line">            }</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line">    <span class="tok-kw">private</span> <span class="tok-kw">void</span> Update()</span>
+<span class="code-line">    {</span>
+<span class="code-line">        <span class="tok-kw">if</span> (Button.activeSelf &amp;&amp; Input.GetKeyDown(KeyCode.Z))</span>
+<span class="code-line">        {   </span>
+<span class="code-line">            Voice.SetActive(<span class="tok-kw">true</span>);</span>
+<span class="code-line">            talkUI.SetActive(<span class="tok-kw">true</span>);</span>
+<span class="code-line">        }</span>
+<span class="code-line">        </span>
+<span class="code-line">        <span class="tok-kw">if</span> (talkUI.activeInHierarchy)<span class="tok-comment">//activeSelf</span></span>
+<span class="code-line">        {</span>
+<span class="code-line">            GameObject.Find("Player").GetComponent&lt;PlayerControl&gt;().enabled =<span class="tok-kw">false</span>;</span>
+<span class="code-line"> </span>
+<span class="code-line">        }</span>
+<span class="code-line">        <span class="tok-kw">else</span></span>
+<span class="code-line">        {</span>
+<span class="code-line">            GameObject.Find("Player").GetComponent&lt;PlayerControl&gt;().enabled =<span class="tok-kw">true</span>;</span>
+<span class="code-line">            Voice.SetActive(<span class="tok-kw">false</span>);</span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line">}</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<p>[Dialog.cs]</p>
+<pre class="code-block" data-lang="csharp"><code class="language-csharp"><span class="code-line"><span class="tok-kw">using</span> System.Collections;</span>
+<span class="code-line"><span class="tok-kw">using</span> System.Collections.Generic;</span>
+<span class="code-line"><span class="tok-kw">using</span> UnityEngine;</span>
+<span class="code-line"><span class="tok-kw">using</span> UnityEngine.UI;</span>
+<span class="code-line"><span class="tok-kw">public</span> <span class="tok-kw">class</span> Dialog : MonoBehaviour</span>
+<span class="code-line">{</span>
+<span class="code-line"> [Header("UI组件")]</span>
+<span class="code-line"><span class="tok-kw">public</span> Text textLabel;</span>
+<span class="code-line"><span class="tok-comment">//public Image faceImage;</span></span>
+<span class="code-line">    [Header("声音文件")]</span>
+<span class="code-line"><span class="tok-kw">public</span> GameObject Type;</span>
+<span class="code-line"> [Header("文本文件")]</span>
+<span class="code-line"><span class="tok-kw">public</span> TextAsset textFile;</span>
+<span class="code-line"><span class="tok-kw">public</span> <span class="tok-kw">int</span> index;</span>
+<span class="code-line"><span class="tok-kw">public</span> <span class="tok-kw">float</span> textspeed;</span>
+<span class="code-line"> </span>
+<span class="code-line">    <span class="tok-comment">//AudioSource Enter0;</span></span>
+<span class="code-line"> </span>
+<span class="code-line"><span class="tok-kw">bool</span> textFinished;</span>
+<span class="code-line">List&lt;<span class="tok-kw">string</span>&gt; textList = <span class="tok-kw">new</span> List&lt;<span class="tok-kw">string</span>&gt;();</span>
+<span class="code-line">    <span class="tok-kw">void</span> Awake()</span>
+<span class="code-line">    {</span>
+<span class="code-line">        GetTextFormFile(textFile);</span>
+<span class="code-line">    }</span>
+<span class="code-line">    <span class="tok-kw">private</span> <span class="tok-kw">void</span> OnEnable () </span>
+<span class="code-line">    {</span>
+<span class="code-line">        <span class="tok-comment">//textLabel.text = textList[index];</span></span>
+<span class="code-line">        <span class="tok-comment">//index++;</span></span>
+<span class="code-line">        textFinished = <span class="tok-kw">true</span>;</span>
+<span class="code-line">        StartCoroutine(SetTextUI());</span>
+<span class="code-line"> </span>
+<span class="code-line">    }</span>
+<span class="code-line">    <span class="tok-comment">// Update is called once per frame</span></span>
+<span class="code-line">    <span class="tok-kw">void</span> Update()</span>
+<span class="code-line">    {</span>
+<span class="code-line"> </span>
+<span class="code-line">        Type.SetActive(<span class="tok-kw">true</span>);</span>
+<span class="code-line"> </span>
+<span class="code-line">        <span class="tok-kw">if</span> (Input.GetKeyDown(KeyCode.Z) &amp;&amp; index == textList.Count)</span>
+<span class="code-line">        {</span>
+<span class="code-line">            Type.SetActive(<span class="tok-kw">false</span>);</span>
+<span class="code-line">            gameObject.SetActive(<span class="tok-kw">false</span>);</span>
+<span class="code-line">            index = 0;</span>
+<span class="code-line">            </span>
+<span class="code-line">            <span class="tok-comment">//Enter0 = GetComponent&lt;AudioSource&gt;();</span></span>
+<span class="code-line">            <span class="tok-comment">//Enter0.Play();</span></span>
+<span class="code-line">        }</span>
+<span class="code-line"> </span>
+<span class="code-line">        <span class="tok-kw">if</span> (textFinished)</span>
+<span class="code-line">        {</span>
+<span class="code-line">            Type.SetActive(<span class="tok-kw">false</span>);</span>
+<span class="code-line"> </span>
+<span class="code-line">        }</span>
+<span class="code-line"> </span>
+<span class="code-line">        <span class="tok-kw">if</span> (Input.GetKeyDown(KeyCode.Z) &amp;&amp; textFinished &amp;&amp; gameObject.activeSelf)</span>
+<span class="code-line">        {</span>
+<span class="code-line">            <span class="tok-comment">//textLabel.text = textList[index];</span></span>
+<span class="code-line">            <span class="tok-comment">//index++;</span></span>
+<span class="code-line"> </span>
+<span class="code-line">            StartCoroutine(SetTextUI());</span>
+<span class="code-line"><span class="tok-comment">//</span></span>
+<span class="code-line"> </span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line">    <span class="tok-kw">void</span> GetTextFormFile(TextAsset file) </span>
+<span class="code-line">    {</span>
+<span class="code-line">        {</span>
+<span class="code-line">            </span>
+<span class="code-line">            textList.Clear();</span>
+<span class="code-line">            index = 0;</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">var</span> lineDate = file.text.Split('\n');</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">foreach</span>(<span class="tok-kw">var</span> line in lineDate) </span>
+<span class="code-line">            {</span>
+<span class="code-line">                textList.Add(line);</span>
+<span class="code-line">                Type.SetActive(<span class="tok-kw">true</span>);</span>
+<span class="code-line">            }</span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line">    IEnumerator SetTextUI()</span>
+<span class="code-line">    {   textFinished = <span class="tok-kw">false</span>;</span>
+<span class="code-line">        textLabel.text = " ";</span>
+<span class="code-line">        </span>
+<span class="code-line"> </span>
+<span class="code-line">        <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 0; i &lt; textList[index].Length; i++) </span>
+<span class="code-line">        {</span>
+<span class="code-line">            textLabel.text += textList[index][i];</span>
+<span class="code-line">            Type.SetActive(<span class="tok-kw">false</span>);</span>
+<span class="code-line">            yield <span class="tok-kw">return</span> <span class="tok-kw">new</span> WaitForSeconds(textspeed);    </span>
+<span class="code-line">        }</span>
+<span class="code-line">        textFinished = <span class="tok-kw">true</span>;</span>
+<span class="code-line">        index++;</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line">}</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<h2>对话框图片存档</h2>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/x-2023-6-1-2/TalkUI3-925.webp" alt="TalkUI3" loading="lazy"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/x-2023-6-1-2/TalkUI4-159.webp" alt="TalkUI4" loading="lazy"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/x-2023-6-1-2/ButtonWhite-636.webp" alt="ButtonWhite" loading="lazy"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/x-2023-6-1-2/ChoseBlack-171.webp" alt="ChoseBlack" loading="lazy"></p></div></article>
+        </main>
+      <footer class="site_footer">© 2023-2026 NINO</footer></div>
+    </div>
+    <script src="./js/site.config.js?v=5948f66cd5"></script>
+    <script src="./js/site.js?v=fc92ade8e0"></script>
+    <script src="./js/markdown.js?v=d199a19740"></script>
+    <script src="./js/blog.js?v=5168848268"></script>
+    <script src="./js/emoji.js?v=1a783ddf30"></script>
+  
+
+</body></html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+    <base href="../" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/favicon.png">
+    <link rel="icon" href="./favicon.ico" sizes="any">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>GAMES101.L9 — ninouiu</title>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ninouiu">
+    <meta property="og:title" content="GAMES101.L9 — ninouiu">
+    <meta property="og:description" content="GAMES101.L9学习笔记">
+    <meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp">
+    <meta property="og:url" content="https://game.ninouiu.com/blog/g101-5.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="./styles/site.css?v=06c3558828">
+  </head>
+  <body data-title="Blog" data-post-id="g101-5">
+    <div class="user_page_wrap">
+      <div class="user_page">
+        <header><div class="inner_column text_header"><h1><a href="./index.html"><img class="site_logo" src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt="ninouiu"></a></h1></div></header><div class="site_nav_sentinel" aria-hidden="true"></div><nav class="site_nav"><a class="site_nav_logo" href="./index.html" aria-label="ninouiu"><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt=""></a><a href="./index.html">Home</a><a href="./dev.html">Dev</a><a href="./blog.html" class="active">Blog</a></nav>
+        <main class="inner_column page_content blog_page">
+          <div class="blog_list" id="blog-list" hidden=""></div>
+          <article class="blog_post" id="blog-post"><p class="blog_date">2026.06.13</p><h1 class="blog_title">GAMES101.L9</h1><div class="blog_body markdown-content"><h1>GAMES101.L9</h1>
+<p>内容：  </p>
+<p></p><details class="foldable"><summary>展开折叠内容</summary><p>shading：  </p>
+<p>1.用在表面上flatshading</p>
+<p>2.用在顶点上gouraudshading：在三个顶点上算出着色结果，并在三角形内部进行插值  </p>
+<p>3.用在像素上phongshading：我们需要三个顶点的法线方向，先对三角形内部的像素做插值，求出这些像素对应的法线，然后再做一次shading</p></details><p></p>
+<ul>
+<li>1.重心坐标(做插值）  </li>
+</ul>
+<ul>
+<li>2.纹理的映射处理</li>
+</ul>
+<ul>
+<li>3.纹理的其他应用</li>
+</ul>
+<h1>1.重心坐标</h1>
+<p>为了做三角形内的插值，为什么要做插值？  </p>
+<p>我们有很多操作都是对三个顶点做的，但是三角形内部没有做处理，我们希望其内部与三个顶点的值或者着色是有平滑过渡的效果的。  </p>
+<p>我们插值什么内容？三角形三个点有不同的属性。比如纹理uv，颜色等。  </p>
+<p>我们可以对任意属性做插值。  </p>
+<h2>重心坐标定义</h2>
+<h2>  </h2>
+<p>三角形内部的某个点=三个顶点坐标的线性组合  </p>
+<p>三个系数都大于等于0并且和为1</p>
+<p>这三个系数组合而成的三维坐标即为重心坐标  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/1.webp" alt="1.png" loading="lazy">  </p>
+<p>例如A的重心坐标是（1，0，0）：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/2.webp" alt="2.png" loading="lazy">  </p>
+<h2>重心坐标计算</h2>
+<h2>  </h2>
+<p>可以通过面积比得到重心坐标：  </p>
+<p>例如求：  </p>
+<p>阿尔法=A对面的三角形面积：总三角形面积  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/3.webp" alt="3.png" loading="lazy">  </p>
+<p>一个特殊的情况，即三角形自己的重心：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/4.webp" alt="4.png" loading="lazy">  </p>
+<p>虽然算面积可以但是我们有一个总结好了的公式：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/5.webp" alt="5.png" loading="lazy">  </p>
+<h2>如何用在任意属性上</h2>
+<p>我们既然已经有了重心对应的系数，那这个系数与对应各个顶点属性值进行线性组合不就好啦：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/6.webp" alt="6.png" loading="lazy">  </p>
+<p>重心坐标虽然可以插值任意属性。  </p>
+<p>但是三角形投影到不同平面，形状可能会变化。计算的某个点的重心坐标也会变化。所以重心坐标并没有投影不变的性质。  </p>
+<p>因此在三维上，我们需要在三维空间的坐标计算重心坐标，而不是投影在平面上（屏幕空间）的三角形做重心坐标的计算。  </p>
+<p>因为重心坐标在投影变换（投影到屏幕平面）下会发生变化，所以我们应该在三维空间计算重心坐标，然后再把这个值对应到二维的结果上去（屏幕空间的像素点）。  </p>
+<p>具体做法是：先知道像素对应的三维空间点（通常通过深度和逆投影变换得到），再相对于三维三角形计算重心坐标，然后用这个权重去插值属性。  </p>
+<h1>2.纹理应用</h1>
+<h2>纹理映射</h2>
+<p>原来纹理的坐标都定义在三角形的顶点上。  </p>
+<p>现在屏幕上任何一个点，我们都可以找到其在三角形对应的重心坐标，我们可以通过这个重心坐标对应的uv坐标去找到对应的纹理的uv坐标对应的值，然后再把这个值应用到kd值（漫反射系数）上去，最后用到像素上。  </p>
+<blockquote><p>具体：  </p>
+<p>如果三个顶点的UV坐标分别是 (u1,v1), (u2,v2) ,(u3,v3)，那么对于重心坐标为 (α,β,γ) 的点，其UV坐标就是 α<em>(u1,v1) + β</em>(u2,v2) + γ*(u3,v3)</p></blockquote>
+<h2>纹理太小的问题</h2>
+<p>假如我们的纹理尺寸很小，但是uv映射需要对齐，自然这张纹理图会被拉大进行映射？（不知道对不对）  </p>
+<p>或者说如果映射在小尺寸纹理上，可能会得到非整数的坐标，我们应该如何把这个值映射到像素上？  </p>
+<p>所以一个纹理上的像素可能会被映射到多个屏幕像素。会有不平滑的块状感。（Nearest）我们希望得到的图像平滑一点。可以用到双线性插值。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/7.webp" alt="7.png" loading="lazy">  </p>
+<h2>双线性插值 Bilinear</h2>
+<p>如图：  </p>
+<p>红点应该映射什么颜色？映射与他最近的纹理像素点。但我们不想这么做，我们想要有平滑的映射关系。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/8.webp" alt="8.png" loading="lazy">  </p>
+<p>我们可以找到这个红点最近四个像素点：  </p>
+<p>以左下角的点设为原点，定义水平和竖直偏移量（s，t）  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/9.webp" alt="9.png" loading="lazy">  </p>
+<p>定义一个操作：线性插值  </p>
+<p>x：取0-1的值  </p>
+<p>lerp（x，v0，v1）=v0+x（v1-v0）  </p>
+<p>x取1结果为v1</p>
+<p>x取0结果为v0</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/10.webp" alt="10.png" loading="lazy">  </p>
+<p>对上下两个点进行插值得到u0，u1</p>
+<p>再对u0和u1进行t方向上的插值：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/11.webp" alt="11.png" loading="lazy">  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/12.webp" alt="12.png" loading="lazy">  </p>
+<p>我们可以知道在这四个点区域内的任意点都可以得到平滑过渡的点。  </p>
+<h2>纹理太大的问题</h2>
+<p>走样问题：远处摩尔纹，近处锯齿  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/13.webp" alt="13.png" loading="lazy">  </p>
+<p>在纹理的采样中：  </p>
+<p>一个像素点对应多个纹理颜色，我们就不能简单用中心进行采样。一个采样点采样多个信号，频率跟不上。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/14.webp" alt="14.png" loading="lazy">  </p>
+<p>我们可以对一个像素对应的多个纹素取平均，映射这个平均值。  </p>
+<p>纹理太小：点查询问题  </p>
+<p>纹理太大：范围查询问题  </p>
+<p>范围查询：给一个区域可以立即得到这个区域的平均值  </p>
+<p>范围查询不止是查平均值，还有最大最小值等。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/15.webp" alt="15.png" loading="lazy">  </p>
+<h2>Mipmap</h2>
+<p>快，近似，方形 </p>
+<p>也就是提前把纹理分级：  </p>
+<p>存储1+1/4+1/16+….</p>
+<p>可以得到额外的存储量是1/3。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/16.webp" alt="16.png" loading="lazy">  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/17.webp" alt="17.png" loading="lazy">  </p>
+<p>我们怎么知道需要映射的是哪个层级？  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/18.webp" alt="18.png" loading="lazy">  </p>
+<p>近似算出来像素移动一个距离对应纹理空间需要移动多大距离：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/19.webp" alt="19.png" loading="lazy">  </p>
+<p>怎么查询这个区域的值？  </p>
+<p>如果这个纹理区域是1x1则对应log2（L=1）=0层  </p>
+<p>2x2对应log2（L=2）=1层  </p>
+<p>如果要查找的是1.8层呢？  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/20.webp" alt="20.png" loading="lazy">  </p>
+<p>对层进行插值：  </p>
+<p>三线性插值  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/21.webp" alt="21.png" loading="lazy">  </p>
+<p>做完后映射变得平滑：  </p>
+<p>在双线性插值基础上，额外在两个相邻的 mipmap 进行插值  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/22.webp" alt="22.png" loading="lazy">  </p>
+<p>但是远处的会糊在一块：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/23.webp" alt="23.png" loading="lazy">  </p>
+<p>如何解决？  </p>
+<h2>各向异性过滤</h2>
+<p>比mipmap多了对于水平方向和竖直方向不均匀的压缩。代价就是需要多3倍的存储内容。对运行性能几乎不会有影响，就是对显存有要求。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/24.webp" alt="24.png" loading="lazy">  </p>
+<p>其对于矩形的映射有优势，不仅仅局限于正方形。  </p>
+<p>如果我们之前对于斜着像素或者扁长的像素进行映射，会取一大块正方形纹理的平均值。  </p>
+<p>但是各向异性也解决不了斜着的映射问题。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/25.webp" alt="25.png" loading="lazy">  </p>
+<p>ewa：  </p>
+<p>利用多个椭圆覆盖区域进行多次椭圆的查询。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-5/26.webp" alt="26.png" loading="lazy"></p></div></article>
+        </main>
+      <footer class="site_footer">© 2023-2026 NINO</footer></div>
+    </div>
+    <script src="./js/site.config.js?v=5948f66cd5"></script>
+    <script src="./js/site.js?v=fc92ade8e0"></script>
+    <script src="./js/markdown.js?v=d199a19740"></script>
+    <script src="./js/blog.js?v=5168848268"></script>
+    <script src="./js/emoji.js?v=1a783ddf30"></script>
+  
+
+</body></html>

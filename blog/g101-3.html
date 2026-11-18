@@ -1,0 +1,119 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+    <base href="../" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/favicon.png">
+    <link rel="icon" href="./favicon.ico" sizes="any">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>GAMES101.L7 — ninouiu</title>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ninouiu">
+    <meta property="og:title" content="GAMES101.L7 — ninouiu">
+    <meta property="og:description" content="GAMES101.L7学习笔记">
+    <meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp">
+    <meta property="og:url" content="https://game.ninouiu.com/blog/g101-3.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="./styles/site.css?v=06c3558828">
+  </head>
+  <body data-title="Blog" data-post-id="g101-3">
+    <div class="user_page_wrap">
+      <div class="user_page">
+        <header><div class="inner_column text_header"><h1><a href="./index.html"><img class="site_logo" src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt="ninouiu"></a></h1></div></header><div class="site_nav_sentinel" aria-hidden="true"></div><nav class="site_nav"><a class="site_nav_logo" href="./index.html" aria-label="ninouiu"><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt=""></a><a href="./index.html">Home</a><a href="./dev.html">Dev</a><a href="./blog.html" class="active">Blog</a></nav>
+        <main class="inner_column page_content blog_page">
+          <div class="blog_list" id="blog-list" hidden=""></div>
+          <article class="blog_post" id="blog-post"><p class="blog_date">2026.06.10</p><h1 class="blog_title">GAMES101.L7</h1><div class="blog_body markdown-content"><h1>GAMES101.L7</h1>
+<p>内容：  </p>
+<ul>
+<li>1.深度缓存/z-buffering</li>
+<li>2.着色，渲染管线 （L8）</li>
+</ul>
+<p>L6遗留问题：先采样再模糊为什么不行？  </p>
+<p>1.先采样会有混叠  </p>
+<p>2.再模糊-&gt;混叠的部分全砍掉-&gt;丢失的信息更多了  </p>
+<h1>1.画家算法：</h1>
+<p>先远处光栅化，再对近处的光栅化覆盖远景。  </p>
+<p>例如绘制一个正方体：  </p>
+<p>按照顺序对各个面进行光栅化，最终得到正确的图像  </p>
+<p>但是有一个问题，我们不知道应该先画哪个面怎么办，对于复杂的图形更是麻烦，我们需要对绘制顺序进行排序。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/1.webp" alt="1.png" loading="lazy">  </p>
+<p>两两覆盖的情况怎么办？深度存在互相遮挡。我们不能按顺序绘制，会出现问题。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/2.webp" alt="2.png" loading="lazy">  </p>
+<h1>2.Z-Buffer</h1>
+<p>虽然对整个图形进行排序做不到，但是我们可以对每个像素进行排序。  </p>
+<p>每个像素记录与我们最近的距离-&gt;深度。  </p>
+<p>具体是怎么做的：  </p>
+<p>下面两个是同时生成的。  </p>
+<ul>
+<li>1.生成最后的结果的图像（frame-buffer）  </li>
+</ul>
+<ul>
+<li>2.生成像素的深度图（z-buffer）  </li>
+</ul>
+<p>我们之前定义摄像机始终看向-z：  </p>
+<p>但方便理解，我们假设z始终为正。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/3.webp" alt="3.png" loading="lazy">  </p>
+<p>如图：  </p>
+<p>这两张图是同步生成的：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/4.webp" alt="4.png" loading="lazy">  </p>
+<p>这个算法是如何运行的：  </p>
+<p>对单个像素的深度对比再进行绘制。  </p>
+<p>如图，初始时每个像素点深度都是∞，找到三角形的某个像素，如果这个像素的深度比之前的图记录的深度小，则绘制并且更新深度缓存，否则，什么也不做 。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/5.webp" alt="5.png" loading="lazy">  </p>
+<p>如图，R为∞：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/6.webp" alt="6.png" loading="lazy">  </p>
+<p>分析一下二者的复杂度：  </p>
+<ul>
+<li>画家算法：排序o(nlogn)</li>
+<li>Z-buffer：o（n）  </li>
+</ul>
+<p>zbuffer为什么是常数，因为我们并没有排序，只是记录深度而已。  </p>
+<p>Zbuffer对于不同的顺序绘制得到的结果都是一样的，只要维护正确的深度图即可。  </p>
+<p>MSAA:我们不是对每个像素做深度缓存，而是对每个采样点做深度缓存。  </p>
+<p>Zbuffer处理不了透明物体的情况，需要特殊处理。  </p>
+<p>目前，学了哪些内容：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/7.webp" alt="7.png" loading="lazy">  </p>
+<h1>3.着色</h1>
+<p>shading</p>
+<p>引入明暗。  </p>
+<p>对不同的物体定义不同的材质。  </p>
+<h2>Blinn- Phong</h2>
+<p>下图由三部分组成：  </p>
+<p>高光，漫反射（明暗），间接光  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/8.webp" alt="8.png" loading="lazy">  </p>
+<hr>
+<p>我们定义：  </p>
+<p>光照方向，法向量，视方向：都是单位向量  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/9.webp" alt="9.png" loading="lazy">  </p>
+<hr>
+<p>着色有局部性：  </p>
+<p>只考虑自己本身，不考虑其他物体/</p>
+<p>我们只能看到明暗变化，看不到阴影，阴影生成之后会说。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/10.webp" alt="10.png" loading="lazy">  </p>
+<hr>
+<p>如图，对方块旋转不同角度，其明暗是不一样的。  </p>
+<p>假设方块会接收光照带来的能量，第二个方块的接触面不变但是接收到的能量更少了，所以更暗了。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/11.webp" alt="11.png" loading="lazy">  </p>
+<p>lamberts‘ cosine law</p>
+<hr>
+<p>光照能量：  </p>
+<p>假设点光源的能量集中在球壳上，对不同位置的球壳大小不一样，考虑能量守恒，对于更远处的球壳其总能量不变，但是由于表面积更大，单位面积所携带的能量就更少了。  </p>
+<p>我们就可以算出点光源对某物体带来的能量了。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/12.webp" alt="12.png" loading="lazy">  </p>
+<p>n dot l取max，把负数截断。  </p>
+<p>Kd漫反射系数：不同的点吸收的能量大小系数，三维向量RGB值。/贴图也是提供kd的一种方式  </p>
+<p>由公式可以看出与视方向无关。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/13.webp" alt="13.png" loading="lazy">  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-3/14.webp" alt="14.png" loading="lazy">  </p>
+<hr></div></article>
+        </main>
+      <footer class="site_footer">© 2023-2026 NINO</footer></div>
+    </div>
+    <script src="./js/site.config.js?v=5948f66cd5"></script>
+    <script src="./js/site.js?v=fc92ade8e0"></script>
+    <script src="./js/markdown.js?v=d199a19740"></script>
+    <script src="./js/blog.js?v=5168848268"></script>
+    <script src="./js/emoji.js?v=1a783ddf30"></script>
+  
+
+</body></html>

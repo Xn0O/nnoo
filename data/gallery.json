@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "heading": "Arts",
+  "arrow": {
+    "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/gallery-arrow.webp"
+  },
+  "showCaptions": false,
+  "items": [
+    {
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/gallery/00-1080.webp",
+      "alt": "Art 00"
+    },
+    {
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/gallery/01-1080.webp",
+      "alt": "Art 01"
+    },
+    {
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/gallery/02-1080.webp",
+      "alt": "Art 02"
+    }
+  ]
+}

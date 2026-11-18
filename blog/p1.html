@@ -1,0 +1,769 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+    <base href="../" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/favicon.png">
+    <link rel="icon" href="./favicon.ico" sizes="any">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>Shader笔记.1 — ninouiu</title>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ninouiu">
+    <meta property="og:title" content="Shader笔记.1 — ninouiu">
+    <meta property="og:description" content="学习笔记">
+    <meta property="og:image" content="https://game.ninouiu.com/assets/blog/p1/cover.webp">
+    <meta property="og:url" content="https://game.ninouiu.com/blog/p1.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="./styles/site.css?v=06c3558828">
+  </head>
+  <body data-title="Blog" data-post-id="p1">
+    <div class="user_page_wrap">
+      <div class="user_page">
+        <header><div class="inner_column text_header"><h1><a href="./index.html"><img class="site_logo" src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt="ninouiu"></a></h1></div></header><div class="site_nav_sentinel" aria-hidden="true"></div><nav class="site_nav"><a class="site_nav_logo" href="./index.html" aria-label="ninouiu"><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt=""></a><a href="./index.html">Home</a><a href="./dev.html">Dev</a><a href="./blog.html" class="active">Blog</a></nav>
+        <main class="inner_column page_content blog_page">
+          <div class="blog_list" id="blog-list" hidden=""></div>
+          <article class="blog_post" id="blog-post"><img class="blog_cover" src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/p1/cover.webp" alt="Shader笔记.1 封面"><p class="blog_date">2026.04.24</p><h1 class="blog_title">Shader笔记.1</h1><div class="blog_body markdown-content"><h1>1.AO贴图的制作</h1>
+<h3>1.在blender的着色界面把光照的场景世界给关了，并且把物体界面的灯光删了。</h3>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/p1/S1.webp" alt="S1" loading="lazy"></p>
+<h3>2.节点里添加这些，然后新建一个贴图，非alpha，非彩色。</h3>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/p1/S2.webp" alt="S2" loading="lazy"></p>
+<h3>3.把渲染引擎改为cycles，并把色彩管理的视图设置为标准。</h3>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/p1/S3.webp" alt="S3" loading="lazy"></p>
+<h3>4.烘培类型为AO，最后烘培好后保存贴图即可。</h3>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/p1/S4.webp" alt="S4" loading="lazy"></p>
+<hr>
+<h1>2.环境渐变色</h1>
+<p> 绿通道是G，代表上方向，取负代表下方向，用1（白色）减去向下的方向就得到其他方向的叠加（侧两面）。得到各方向的遮罩。</p>
+<p>对上，下，侧方向的遮罩乘以颜色然后再混合，即add。 得到环境渐变。最后再multply环境AO阴影。</p>
+<p>代码实现更简洁。</p>
+<pre class="code-block" data-lang="hlsl"><code class="language-hlsl"><span class="code-line"><span class="tok-comment">//混合运算</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> envCol = _UpCol * upMask + _DownCol * downMask + _MidCol * sideMask;</span>
+<span class="code-line">                <span class="tok-kw">float</span> occlusion = tex2D(_AOtex,i.uv);               <span class="tok-comment">//采样贴图函数tex2D</span></span>
+<span class="code-line">                occlusion = lerp(1.0, occlusion, _AOIntensity); </span>
+<span class="code-line">                <span class="tok-kw">float3</span> envLit = envCol * occlusion;</span>
+<span class="code-line">                <span class="tok-comment">//返回结果</span></span>
+<span class="code-line">                <span class="tok-kw">return</span> <span class="tok-kw">float4</span>(envLit,1.0);         </span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<p>完整代码：</p>
+<pre class="code-block" data-lang="hlsl"><code class="language-hlsl"><span class="code-line">Shader "L0/L07/EnvColor_CODE" {                 <span class="tok-comment">//路径名 </span></span>
+<span class="code-line">    Properties {                        <span class="tok-comment">//unity里inspector的参数</span></span>
+<span class="code-line">    <span class="tok-comment">///格式。_名字 (“面板名字”，类型)=默认值，并且VertexInput之前也要声明，或之前声明即可</span></span>
+<span class="code-line">    <span class="tok-comment">//起手下划线加大写</span></span>
+<span class="code-line">    _AOIntensity ("AO强度", Range(0, 20)) = 0.8 </span>
+<span class="code-line">    _AOtex ("AO图",2d) = "white"{}</span>
+<span class="code-line">    _UpCol ("上环境",color) = (1.0,1.0,1.0,1.0)</span>
+<span class="code-line">    _MidCol ("中环境",color) = (0.5,0.5,0.5,1.0)</span>
+<span class="code-line">    _DownCol ("下环境",color) = (0.0,0.0,0.0,1.0)</span>
+<span class="code-line"> </span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">    SubShader {</span>
+<span class="code-line">        Tags {</span>
+<span class="code-line">            "RenderType"="Opaque"</span>
+<span class="code-line">        }</span>
+<span class="code-line">        Pass {</span>
+<span class="code-line">            Name "FORWARD"</span>
+<span class="code-line">            Tags {</span>
+<span class="code-line">                "LightMode"="ForwardBase"</span>
+<span class="code-line">            }</span>
+<span class="code-line">            CGPROGRAM</span>
+<span class="code-line">            #pragma vertex vert</span>
+<span class="code-line">            #pragma fragment frag</span>
+<span class="code-line">            #include "UnityCG.cginc"</span>
+<span class="code-line">            #include "UnityPBSLighting.cginc"</span>
+<span class="code-line">            #include "UnityStandardBRDF.cginc"</span>
+<span class="code-line">            #pragma multi_compile_fwdbase_fullshadows</span>
+<span class="code-line">            #pragma target 3.0</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//声明参数</span></span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _UpCol;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _MidCol;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _DownCol;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _AOIntensity;</span>
+<span class="code-line">            uniform sampler2D _AOtex;</span>
+<span class="code-line">                                                                    <span class="tok-comment">//模型的相关信息输入</span></span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexInput {                                    <span class="tok-comment">//输入结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> vertex : POSITION;                           <span class="tok-comment">//顶点信息</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> normal : NORMAL;                             <span class="tok-comment">//法线信息</span></span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv0 : TEXCOORD0;                             <span class="tok-comment">//uv信息：有贴图就要有uv，0通道，一共有4个通道</span></span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexOutput {                                   <span class="tok-comment">//输出结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> pos : SV_POSITION;                           <span class="tok-comment">//裁切空间，可以先理解为屏幕空间</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirWS : TEXCOORD0;                          <span class="tok-comment">//世界 物体法线位置</span></span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv : TEXCOORD1;                              <span class="tok-comment">//世界 顶点位置</span></span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输入》顶点Shader》输出</span></span>
+<span class="code-line">            VertexOutput vert (VertexInput v) {                     <span class="tok-comment">//顶点Shader</span></span>
+<span class="code-line">                VertexOutput o = (VertexOutput)0;</span>
+<span class="code-line">                o.pos = UnityObjectToClipPos( v.vertex );         <span class="tok-comment">//映射到屏幕空间的位置，Unity提供的方法</span></span>
+<span class="code-line">                o.nDirWS = UnityObjectToWorldNormal(v.normal);      <span class="tok-comment">//本地转世界空间，Unity提供的方法</span></span>
+<span class="code-line">                o.uv = v.uv0;                                       <span class="tok-comment">//uv采样，输出uv等于输入uv0</span></span>
+<span class="code-line">                <span class="tok-kw">return</span> o;</span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输出》像素shader</span></span>
+<span class="code-line">            <span class="tok-kw">float4</span> frag(VertexOutput i) : COLOR {                   <span class="tok-comment">//像素shader</span></span>
+<span class="code-line">                <span class="tok-comment">//准备向量</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDir = i.nDirWS;                             <span class="tok-comment">//在像素shader叫i，在顶点叫o</span></span>
+<span class="code-line">                </span>
+<span class="code-line">                <span class="tok-comment">//准备结果</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> upMask = max(0.0 , nDir.g);</span>
+<span class="code-line">                <span class="tok-kw">float</span> downMask = max(0.0 , -nDir.g);</span>
+<span class="code-line">                <span class="tok-kw">float</span> sideMask = 1.0 - upMask - downMask;</span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//混合运算</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> envCol = _UpCol * upMask + _DownCol * downMask + _MidCol * sideMask;</span>
+<span class="code-line">                <span class="tok-kw">float</span> occlusion = tex2D(_AOtex,i.uv);               <span class="tok-comment">//采样贴图函数tex2D</span></span>
+<span class="code-line">                occlusion = lerp(1.0, occlusion, _AOIntensity); </span>
+<span class="code-line">                <span class="tok-kw">float3</span> envLit = envCol * occlusion;</span>
+<span class="code-line">                <span class="tok-comment">//返回结果</span></span>
+<span class="code-line">                <span class="tok-kw">return</span> <span class="tok-kw">float4</span>(envLit,1.0);         <span class="tok-comment">//规范化，输出lambert1</span></span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            ENDCG</span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
+<span class="code-line">    FallBack "Diffuse"</span>
+<span class="code-line"> </span>
+<span class="code-line">    CustomEditor "ShaderForgeMaterialInspector"</span>
+<span class="code-line">}</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<hr>
+<h1>3.实现投影的代码实现</h1>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/p1/S5.webp" alt="S5" loading="lazy"></p>
+<p>完整代码：</p>
+<pre class="code-block" data-lang="hlsl"><code class="language-hlsl"><span class="code-line">Shader "L0/L07/LightShadow" {                 <span class="tok-comment">//路径名</span></span>
+<span class="code-line"> </span>
+<span class="code-line">    Properties {                        <span class="tok-comment">//unity里inspector的参数</span></span>
+<span class="code-line">    </span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">    SubShader {</span>
+<span class="code-line">        Tags {</span>
+<span class="code-line">            "RenderType"="Opaque"</span>
+<span class="code-line">        }</span>
+<span class="code-line">        Pass {</span>
+<span class="code-line">            Name "FORWARD"</span>
+<span class="code-line">            Tags {</span>
+<span class="code-line">                "LightMode"="ForwardBase"</span>
+<span class="code-line">            }</span>
+<span class="code-line">            CGPROGRAM</span>
+<span class="code-line">            #pragma vertex vert</span>
+<span class="code-line">            #pragma fragment frag</span>
+<span class="code-line">            #include "UnityCG.cginc"</span>
+<span class="code-line">            <span class="tok-comment">//#include "UnityPBSLighting.cginc"     //PBR的东西，删了</span></span>
+<span class="code-line">            <span class="tok-comment">//#include "UnityStandardBRDF.cginc"</span></span>
+<span class="code-line">            #include "AutoLight.cginc"  <span class="tok-comment">//unity投影必须有这个库</span></span>
+<span class="code-line">            #include "Lighting.cginc"   <span class="tok-comment">//同上</span></span>
+<span class="code-line"> </span>
+<span class="code-line">            #pragma multi_compile_fwdbase_fullshadows</span>
+<span class="code-line">            #pragma target 3.0</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//声明参数</span></span>
+<span class="code-line">            </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexInput {                                    <span class="tok-comment">//输入结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> vertex : POSITION;</span>
+<span class="code-line">                </span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexOutput {                                   <span class="tok-comment">//输出结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> pos : SV_POSITION;                         <span class="tok-comment">//裁切空间，可以先理解为屏幕空间</span></span>
+<span class="code-line">                LIGHTING_COORDS(0,1)                                <span class="tok-comment">//投影坐标，Unity已经封装的，格式有点奇怪，如果占用了COORD0那么就填（1，2）</span></span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输入》顶点Shader》输出</span></span>
+<span class="code-line">            VertexOutput vert (VertexInput v) {                     <span class="tok-comment">//顶点Shader</span></span>
+<span class="code-line">                VertexOutput o = (VertexOutput)0;</span>
+<span class="code-line">                o.pos = UnityObjectToClipPos( v.vertex );         <span class="tok-comment">//映射到屏幕空间的位置，Unity提供的方法</span></span>
+<span class="code-line">                TRANSFER_VERTEX_TO_FRAGMENT(o);                     <span class="tok-comment">//unity封装，实现投影，顶点shader必须加。TRANSFER_VERTEX_TO_FRAGMENT 宏强制要求结构体有 pos 字段（名称必须是 pos，不能改）</span></span>
+<span class="code-line">                </span>
+<span class="code-line">                <span class="tok-kw">return</span> o;</span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输出》像素shader</span></span>
+<span class="code-line">            <span class="tok-kw">float4</span> frag(VertexOutput i) : COLOR {                   <span class="tok-comment">//像素shader</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> shadow = LIGHT_ATTENUATION(i);                <span class="tok-comment">//unity封装，可取出投影</span></span>
+<span class="code-line">                <span class="tok-comment">//返回结果</span></span>
+<span class="code-line">                <span class="tok-kw">return</span> <span class="tok-kw">float4</span>(shadow,shadow,shadow,1.0);</span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            ENDCG</span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
+<span class="code-line">    FallBack "Diffuse"</span>
+<span class="code-line"> </span>
+<span class="code-line">    CustomEditor "ShaderForgeMaterialInspector"</span>
+<span class="code-line">}</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<hr>
+<h1>4.综合代码（直接光间接光阴影色）</h1>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/p1/S6.webp" alt="S6" loading="lazy"></p>
+<pre class="code-block" data-lang="hlsl"><code class="language-hlsl"><span class="code-line">Shader "L0/L07/OSC_Plus" {                 <span class="tok-comment">//路径名</span></span>
+<span class="code-line"> </span>
+<span class="code-line">    Properties {                        <span class="tok-comment">//unity里inspector的参数</span></span>
+<span class="code-line">        _MainCol ("主色", Color) = (0.0,0.0,0.0,1)</span>
+<span class="code-line">        _Occlusion ("AO遮罩", 2D) = "white" {}</span>
+<span class="code-line">        _AOIntensity ("AO强度", Range(0, 1)) = 0</span>
+<span class="code-line">        _UpColor ("上环境色", Color) = (0.7,0.9,1,1)</span>
+<span class="code-line">        _SideColor ("侧环境色", Color) = (0.5,0.7,0.5,1)</span>
+<span class="code-line">        _DownColor ("下环境色", Color) = (0.6,0.5,0.4,1)</span>
+<span class="code-line">        _HighLight ("亮纹理强度", Range(0, 100)) = 0</span>
+<span class="code-line">        _HighLightTEX ("高光纹理", 2D) = "white" {}</span>
+<span class="code-line">        _HighLightBLACK ("暗纹理强度", Range(0, 10)) = 1</span>
+<span class="code-line">        _ShaderColor ("阴影颜色", Color) = (0.5,0.5,0.5,0.7)</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">    SubShader {</span>
+<span class="code-line">        Tags {</span>
+<span class="code-line">            "RenderType"="Opaque"</span>
+<span class="code-line">        }</span>
+<span class="code-line">        Pass {</span>
+<span class="code-line">            Name "FORWARD"</span>
+<span class="code-line">            Tags {</span>
+<span class="code-line">                "LightMode"="ForwardBase"</span>
+<span class="code-line">            }</span>
+<span class="code-line">            CGPROGRAM</span>
+<span class="code-line">            #pragma vertex vert</span>
+<span class="code-line">            #pragma fragment frag</span>
+<span class="code-line">            #include "UnityCG.cginc"</span>
+<span class="code-line">            #include "AutoLight.cginc"  <span class="tok-comment">//unity投影必须有这个库</span></span>
+<span class="code-line">            #include "Lighting.cginc"   <span class="tok-comment">//同上</span></span>
+<span class="code-line"> </span>
+<span class="code-line">            #pragma multi_compile_fwdbase_fullshadows</span>
+<span class="code-line">            #pragma target 3.0</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//声明参数</span></span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _MainCol;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _UpColor;</span>
+<span class="code-line">            uniform sampler2D _Occlusion;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _SideColor;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _DownColor;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _HighLight;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _AOIntensity;</span>
+<span class="code-line">            uniform sampler2D _HighLightTEX;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _HighLightBLACK;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _ShaderColor;</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexInput {                                    <span class="tok-comment">//输入结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> vertex : POSITION;</span>
+<span class="code-line">                <span class="tok-kw">float4</span> normal : NORMAL;</span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv0    : TEXCOORD0;</span>
+<span class="code-line"> </span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexOutput {                                   <span class="tok-comment">//输出结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> pos : SV_POSITION;                           <span class="tok-comment">//裁切空间，可以先理解为屏幕空间</span></span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv0 : TEXCOORD0;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> posWS : TEXCOORD1;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirWS : TEXCOORD2;</span>
+<span class="code-line">                LIGHTING_COORDS(3,4)                                <span class="tok-comment">//投影坐标，Unity已经封装的，格式有点奇怪，如果占用了COORD0那么就填（1，2）</span></span>
+<span class="code-line"> </span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输入》顶点Shader》输出</span></span>
+<span class="code-line">            VertexOutput vert (VertexInput v) {                     <span class="tok-comment">//顶点Shader</span></span>
+<span class="code-line">                VertexOutput o = (VertexOutput)0;</span>
+<span class="code-line">                o.pos = UnityObjectToClipPos( v.vertex );           <span class="tok-comment">//映射到屏幕空间的位置，Unity提供的方法</span></span>
+<span class="code-line">                o.uv0 = v.uv0;</span>
+<span class="code-line">                o.posWS = mul(unity_ObjectToWorld,v.vertex);</span>
+<span class="code-line">                o.nDirWS = UnityObjectToWorldNormal(v.normal);</span>
+<span class="code-line">                TRANSFER_VERTEX_TO_FRAGMENT(o);                     <span class="tok-comment">//unity封装，实现投影，顶点shader必须加。TRANSFER_VERTEX_TO_FRAGMENT 宏强制要求结构体有 pos 字段（名称必须是 pos，不能改）</span></span>
+<span class="code-line">                </span>
+<span class="code-line">                <span class="tok-kw">return</span> o;</span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输出》像素shader</span></span>
+<span class="code-line">            <span class="tok-kw">float4</span> frag(VertexOutput i) : COLOR {                   <span class="tok-comment">//像素shader</span></span>
+<span class="code-line">                <span class="tok-comment">//准备向量</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDir = i.nDirWS;                             <span class="tok-comment">//在像素shader叫i，在顶点叫o</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> lDir = _WorldSpaceLightPos0.xyz;</span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-kw">float3</span> vDir = normalize(_WorldSpaceCameraPos.xyz - i.posWS); <span class="tok-comment">//相机位置 - 顶点位置，等于视角方向，初始位置(顶点)指向终点位置，再归一化</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> hDir = normalize(vDir + lDir);               <span class="tok-comment">//半角，向量的合成，相加</span></span>
+<span class="code-line">                </span>
+<span class="code-line">                <span class="tok-comment">//准备结果</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> ndotl = dot(nDir,lDir);                       <span class="tok-comment">//初始操作，shadergraph第一步连连看，兰伯特</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> ndoth = dot(nDir,hDir);                       <span class="tok-comment">//BlinnPhong，类似兰伯特，一个截断加一个power突出高光</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> upMask = max(0.0 , nDir.g);</span>
+<span class="code-line">                <span class="tok-kw">float</span> downMask = max(0.0 , -nDir.g);</span>
+<span class="code-line">                <span class="tok-kw">float</span> sideMask = 1.0 - upMask - downMask;</span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//光照模型(直接光照)</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> lambert = max(0.0,ndotl);</span>
+<span class="code-line">                lambert = lambert * 0.5 + 0.5;</span>
+<span class="code-line">                <span class="tok-comment">//float blinnPhong = pow(max(0.0,ndoth),_SpeculPow);</span></span>
+<span class="code-line">                <span class="tok-comment">//float occlusion = tex2D(_AOtex,i.uv);</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> shadow = LIGHT_ATTENUATION(i);                <span class="tok-comment">//unity封装，可取出投影</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> highlitTEX = tex2D(_HighLightTEX,i.uv0).r;</span>
+<span class="code-line">                <span class="tok-kw">float</span> specPow = lerp(_HighLightBLACK, _HighLight, highlitTEX);</span>
+<span class="code-line">                <span class="tok-kw">float</span> blinnPhong = pow(max(0.0,ndoth),specPow);</span>
+<span class="code-line">                <span class="tok-kw">float3</span> dirLighting = _MainCol * lambert + blinnPhong;  <span class="tok-comment">//规范，先把3维放前面乘，加上blinnPhong可以只把高光混合进来因为黑值是0.</span></span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//环境模型(间接光照)</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> envCol = _UpColor * upMask + _DownColor * downMask + _SideColor * sideMask;</span>
+<span class="code-line">                <span class="tok-kw">float</span> occlusion = tex2D(_Occlusion,i.uv0);               <span class="tok-comment">//采样贴图函数tex2D</span></span>
+<span class="code-line">                occlusion = lerp(1.0, occlusion, _AOIntensity); </span>
+<span class="code-line">                <span class="tok-kw">float3</span> envLit = envCol * occlusion;</span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//阴影颜色混合</span></span>
+<span class="code-line">                dirLighting = dirLighting * envLit;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> finalRGB = lerp(_ShaderColor,dirLighting,shadow);</span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//返回结果</span></span>
+<span class="code-line">                <span class="tok-kw">return</span> <span class="tok-kw">float4</span>(finalRGB,1.0);</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            ENDCG</span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
+<span class="code-line">    FallBack "Diffuse"</span>
+<span class="code-line"> </span>
+<span class="code-line">    CustomEditor "ShaderForgeMaterialInspector"</span>
+<span class="code-line">}</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<hr>
+<h1>5.法线</h1>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/p1/S7.webp" alt="S7" loading="lazy"></p>
+<p>1.纹理法线需要解包才能用</p>
+<p>2.TBN 矩阵是 “纹理空间→世界空间” 的转换矩阵（即切线空间的法线信息转到世界空间）</p>
+<p>3.把切线空间转到世界空间得到有凹凸法线的向量信息。</p>
+<blockquote><p>TBN是从切线空间转世界空间 Object2World是从模型空间转世界空间</p></blockquote>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/p1/S8.webp" alt="S8" loading="lazy"></p>
+<pre class="code-block" data-lang="hlsl"><code class="language-hlsl"><span class="code-line"><span class="tok-kw">float3x3</span> TBN = <span class="tok-kw">float3x3</span>(i.tDirWS,i.bDirWS,i.nDirWS);</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<p>完整代码：</p>
+<pre class="code-block" data-lang="hlsl"><code class="language-hlsl"><span class="code-line">Shader "L0/L08/FaXian" {                 <span class="tok-comment">//路径名</span></span>
+<span class="code-line"> </span>
+<span class="code-line">    Properties {                        <span class="tok-comment">//unity里inspector的参数</span></span>
+<span class="code-line">        _MainCol ("主色", Color) = (0.0,0.0,0.0,1)</span>
+<span class="code-line">        _NormalMap ("法线贴图", 2D) = "bump" {}</span>
+<span class="code-line">        _Occlusion ("AO遮罩", 2D) = "white" {}</span>
+<span class="code-line">        _AOIntensity ("AO强度", Range(0, 1)) = 0</span>
+<span class="code-line">        _UpColor ("上环境色", Color) = (0.7,0.9,1,1)</span>
+<span class="code-line">        _SideColor ("侧环境色", Color) = (0.5,0.7,0.5,1)</span>
+<span class="code-line">        _DownColor ("下环境色", Color) = (0.6,0.5,0.4,1)</span>
+<span class="code-line">        _HighLight ("亮纹理强度", Range(0, 100)) = 0</span>
+<span class="code-line">        _HighLightTEX ("高光纹理", 2D) = "white" {}</span>
+<span class="code-line">        _HighLightBLACK ("暗纹理强度", Range(0, 10)) = 1</span>
+<span class="code-line">        _ShaderColor ("阴影颜色", Color) = (0.5,0.5,0.5,0.7)</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">    SubShader {</span>
+<span class="code-line">        Tags {</span>
+<span class="code-line">            "RenderType"="Opaque"</span>
+<span class="code-line">        }</span>
+<span class="code-line">        Pass {</span>
+<span class="code-line">            Name "FORWARD"</span>
+<span class="code-line">            Tags {</span>
+<span class="code-line">                "LightMode"="ForwardBase"</span>
+<span class="code-line">            }</span>
+<span class="code-line">            CGPROGRAM</span>
+<span class="code-line">            #pragma vertex vert</span>
+<span class="code-line">            #pragma fragment frag</span>
+<span class="code-line">            #include "UnityCG.cginc"</span>
+<span class="code-line">            #include "AutoLight.cginc"  <span class="tok-comment">//unity投影必须有这个库</span></span>
+<span class="code-line">            #include "Lighting.cginc"   <span class="tok-comment">//同上</span></span>
+<span class="code-line"> </span>
+<span class="code-line">            #pragma multi_compile_fwdbase_fullshadows</span>
+<span class="code-line">            #pragma target 3.0</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//声明参数</span></span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _MainCol;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _UpColor;</span>
+<span class="code-line">            uniform sampler2D _Occlusion;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _SideColor;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _DownColor;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _HighLight;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _AOIntensity;</span>
+<span class="code-line">            uniform sampler2D _HighLightTEX;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _HighLightBLACK;</span>
+<span class="code-line">            uniform <span class="tok-kw">float3</span> _ShaderColor;</span>
+<span class="code-line">            uniform sampler2D _NormalMap;</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexInput {                                    <span class="tok-comment">//输入结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> vertex : POSITION;</span>
+<span class="code-line">                <span class="tok-kw">float4</span> normal : NORMAL;</span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv0    : TEXCOORD0;</span>
+<span class="code-line">                <span class="tok-kw">float4</span> tangent : TANGENT;</span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexOutput {                                   <span class="tok-comment">//输出结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> pos : SV_POSITION;                           <span class="tok-comment">//裁切空间，可以先理解为屏幕空间</span></span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv0 : TEXCOORD0;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> posWS : TEXCOORD1;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirWS : TEXCOORD2;</span>
+<span class="code-line">                LIGHTING_COORDS(3,4)                                <span class="tok-comment">//投影坐标，Unity已经封装的，格式有点奇怪，如果占用了COORD0那么就填（1，2）</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> tDirWS : TEXCOORD5;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> bDirWS : TEXCOORD6;</span>
+<span class="code-line"> </span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输入》顶点Shader》输出</span></span>
+<span class="code-line">            VertexOutput vert (VertexInput v) {                     <span class="tok-comment">//顶点Shader</span></span>
+<span class="code-line">                VertexOutput o = (VertexOutput)0;</span>
+<span class="code-line">                o.pos = UnityObjectToClipPos( v.vertex );           <span class="tok-comment">//映射到屏幕空间的位置，Unity提供的方法</span></span>
+<span class="code-line">                o.uv0 = v.uv0;</span>
+<span class="code-line">                o.posWS = mul(unity_ObjectToWorld,v.vertex);</span>
+<span class="code-line">                o.nDirWS = UnityObjectToWorldNormal(v.normal);</span>
+<span class="code-line">                TRANSFER_VERTEX_TO_FRAGMENT(o);                     <span class="tok-comment">//unity封装，实现投影，顶点shader必须加。TRANSFER_VERTEX_TO_FRAGMENT 宏强制要求结构体有 pos 字段（名称必须是 pos，不能改）</span></span>
+<span class="code-line">                o.tDirWS = normalize(mul(unity_ObjectToWorld,<span class="tok-kw">float4</span>(v.tangent.xyz,0.0)).xyz);       <span class="tok-comment">///////////////////</span></span>
+<span class="code-line">                o.bDirWS = normalize(cross(o.nDirWS,o.tDirWS) * v.tangent.w);                           <span class="tok-comment">///////////////////</span></span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-kw">return</span> o;</span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输出》像素shader</span></span>
+<span class="code-line">            <span class="tok-kw">float4</span> frag(VertexOutput i) : COLOR {                   <span class="tok-comment">//像素shader</span></span>
+<span class="code-line">                <span class="tok-comment">//准备向量</span></span>
+<span class="code-line">                <span class="tok-comment">//float3 nDir = i.nDirWS;                             //在像素shader叫i，在顶点叫o</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> var_NormalMap = UnpackNormal(tex2D(_NormalMap,i.uv0)).rgb;                   <span class="tok-comment">/////////////////</span></span>
+<span class="code-line">                <span class="tok-kw">float3x3</span> TBN = <span class="tok-kw">float3x3</span>(i.tDirWS,i.bDirWS,i.nDirWS);                                <span class="tok-comment">////////////////</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDir = normalize(mul(var_NormalMap,TBN));                                    <span class="tok-comment">////////////////</span></span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-kw">float3</span> lDir = _WorldSpaceLightPos0.xyz;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> vDir = normalize(_WorldSpaceCameraPos.xyz - i.posWS); <span class="tok-comment">//相机位置 - 顶点位置，等于视角方向，初始位置(顶点)指向终点位置，再归一化</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> hDir = normalize(vDir + lDir);               <span class="tok-comment">//半角，向量的合成，相加</span></span>
+<span class="code-line">                <span class="tok-comment">//法线信息</span></span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//准备结果</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> ndotl = dot(nDir,lDir);                       <span class="tok-comment">//初始操作，shadergraph第一步连连看，兰伯特</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> ndoth = dot(nDir,hDir);                       <span class="tok-comment">//BlinnPhong，类似兰伯特，一个截断加一个power突出高光</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> upMask = max(0.0 , nDir.g);</span>
+<span class="code-line">                <span class="tok-kw">float</span> downMask = max(0.0 , -nDir.g);</span>
+<span class="code-line">                <span class="tok-kw">float</span> sideMask = 1.0 - upMask - downMask;</span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//光照模型(直接光照)</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> lambert = max(0.0,ndotl);</span>
+<span class="code-line">                lambert = lambert * 0.5 + 0.5;</span>
+<span class="code-line">                <span class="tok-comment">//float blinnPhong = pow(max(0.0,ndoth),_SpeculPow);</span></span>
+<span class="code-line">                <span class="tok-comment">//float occlusion = tex2D(_AOtex,i.uv);</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> shadow = LIGHT_ATTENUATION(i);                <span class="tok-comment">//unity封装，可取出投影</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> highlitTEX = tex2D(_HighLightTEX,i.uv0).r;</span>
+<span class="code-line">                <span class="tok-kw">float</span> specPow = lerp(_HighLightBLACK, _HighLight, highlitTEX);</span>
+<span class="code-line">                <span class="tok-kw">float</span> blinnPhong = pow(max(0.0,ndoth),specPow);</span>
+<span class="code-line">                <span class="tok-kw">float3</span> dirLighting = _MainCol * lambert + blinnPhong;  <span class="tok-comment">//规范，先把3维放前面乘，加上blinnPhong可以只把高光混合进来因为黑值是0.</span></span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//环境模型(间接光照)</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> envCol = _UpColor * upMask + _DownColor * downMask + _SideColor * sideMask;</span>
+<span class="code-line">                <span class="tok-kw">float</span> occlusion = tex2D(_Occlusion,i.uv0);               <span class="tok-comment">//采样贴图函数tex2D</span></span>
+<span class="code-line">                occlusion = lerp(1.0, occlusion, _AOIntensity); </span>
+<span class="code-line">                <span class="tok-kw">float3</span> envLit = envCol * occlusion;</span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//阴影颜色混合</span></span>
+<span class="code-line">                dirLighting = dirLighting * envLit;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> finalRGB = lerp(_ShaderColor,dirLighting,shadow);</span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//返回结果</span></span>
+<span class="code-line">                <span class="tok-kw">return</span> <span class="tok-kw">float4</span>(finalRGB,1.0);</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            ENDCG</span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
+<span class="code-line">    FallBack "Diffuse"</span>
+<span class="code-line"> </span>
+<span class="code-line">    CustomEditor "ShaderForgeMaterialInspector"</span>
+<span class="code-line">}</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<hr>
+<h1>6.菲涅尔</h1>
+<blockquote><p>视线与法向量越平行就越亮,再取个反就是菲涅尔了</p></blockquote>
+<h2>一般用于边缘光？</h2>
+<p>vDir dot lDir结果为中间亮边缘暗</p>
+<p>取个反即 1 - vDotl 中间即为1 - 0（亮）结果为1则为暗</p>
+<p>通过power可以调整菲涅尔的强度即边缘的范围。</p>
+<p>这个很简单。</p>
+<hr>
+<h1>7.Matcap</h1>
+<h2>一般用于模拟反射/不真实但性能好/会随镜头变化而发生变化</h2>
+<p>法线贴图是怎么变成向量信息的</p>
+<blockquote><p>RGB映射XYZ（向量信息）</p></blockquote>
+<p>·  颜色值（如 128）先归一化为 0.0 ~ 1.0 的浮点数（128/255 ≈ 0.502，近似 0.5）；</p>
+<p>·  把 0.0 ~ 1.0 的范围映射到 -1.0 ~ 1.0（公式：向量值 = (归一化颜色值 - 0.5) * 2）；</p>
+<p>·  最终得到的向量分量（x/y/z）就是法线的单位向量（长度为 1）。</p>
+<pre class="code-block" data-lang="hlsl"><code class="language-hlsl"><span class="code-line">Shader "L0/L09/matCap" {                 <span class="tok-comment">//路径名</span></span>
+<span class="code-line"> </span>
+<span class="code-line">    Properties {                        <span class="tok-comment">//unity里inspector的参数</span></span>
+<span class="code-line">    <span class="tok-comment">///格式。_名字 (“面板名字”，类型)=默认值，并且VertexInput之前也要声明，或之前声明即可</span></span>
+<span class="code-line">    <span class="tok-comment">//起手下划线加大写</span></span>
+<span class="code-line">        _NormalMap ("法线贴图", 2D) = "bump" {}</span>
+<span class="code-line">        _MatCap ("MatCap", 2D) = "white" {}</span>
+<span class="code-line">        _envSpecular ("环境镜面反射强度", Range(0, 5)) = 1</span>
+<span class="code-line">        _fnlSpecular ("菲涅尔次幂", Range(0, 100)) = 1</span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">    SubShader {</span>
+<span class="code-line">        Tags {</span>
+<span class="code-line">            "RenderType"="Opaque"</span>
+<span class="code-line">        }</span>
+<span class="code-line">        Pass {</span>
+<span class="code-line">            Name "FORWARD"</span>
+<span class="code-line">            Tags {</span>
+<span class="code-line">                "LightMode"="ForwardBase"</span>
+<span class="code-line">            }</span>
+<span class="code-line">            CGPROGRAM</span>
+<span class="code-line">            #pragma vertex vert</span>
+<span class="code-line">            #pragma fragment frag</span>
+<span class="code-line">            #include "UnityCG.cginc"</span>
+<span class="code-line">            #include "UnityPBSLighting.cginc"</span>
+<span class="code-line">            #include "UnityStandardBRDF.cginc"</span>
+<span class="code-line">            #pragma multi_compile_fwdbase_fullshadows</span>
+<span class="code-line">            #pragma target 3.0</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//声明参数</span></span>
+<span class="code-line">            uniform sampler2D _NormalMap;</span>
+<span class="code-line">            uniform sampler2D _MatCap;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _envSpecular;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _fnlSpecular;</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexInput {                                    <span class="tok-comment">//输入结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> vertex : POSITION;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> normal : NORMAL;</span>
+<span class="code-line">                <span class="tok-kw">float4</span> tangent : TANGENT;</span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv0 : TEXCOORD0;</span>
+<span class="code-line">                <span class="tok-comment">//顶点，法线，切线（法线贴图必备），采样uv，</span></span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexOutput {                                   <span class="tok-comment">//输出结构</span></span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv0 : TEXCOORD0;</span>
+<span class="code-line">                <span class="tok-kw">float4</span> pos : SV_POSITION;                         <span class="tok-comment">//裁切空间，可以先理解为屏幕空间</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirWS : TEXCOORD1;                         <span class="tok-comment">//世界 物体法线位置</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> posWS : TEXCOORD2;                          <span class="tok-comment">//世界 顶点位置</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> tDirWS : TEXCOORD3;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> bDirWS : TEXCOORD4;</span>
+<span class="code-line">                </span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输入》顶点Shader》输出</span></span>
+<span class="code-line">            VertexOutput vert (VertexInput v) {                     <span class="tok-comment">//顶点Shader</span></span>
+<span class="code-line">                VertexOutput o = (VertexOutput)0;</span>
+<span class="code-line">                o.pos = UnityObjectToClipPos( v.vertex );         <span class="tok-comment">//映射到屏幕空间的位置，Unity提供的方法</span></span>
+<span class="code-line">                o.posWS = mul(unity_ObjectToWorld,v.vertex);        <span class="tok-comment">//unity_ObjectToWorld是全小写的！！</span></span>
+<span class="code-line">                o.nDirWS = UnityObjectToWorldNormal(v.normal);      <span class="tok-comment">//本地转世界空间，Unity提供的方法</span></span>
+<span class="code-line">                o.uv0 = v.uv0;</span>
+<span class="code-line">                o.tDirWS = normalize( mul( unity_ObjectToWorld, <span class="tok-kw">float4</span>( v.tangent.xyz, 0.0 ) ).xyz );</span>
+<span class="code-line">                o.bDirWS = normalize(cross(o.nDirWS, o.tDirWS) * v.tangent.w);</span>
+<span class="code-line">                <span class="tok-kw">return</span> o;</span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输出》像素shader</span></span>
+<span class="code-line">            <span class="tok-kw">float4</span> frag(VertexOutput i) : COLOR {                   <span class="tok-comment">//像素shader</span></span>
+<span class="code-line">                <span class="tok-comment">//准备向量</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirTS = UnpackNormal(tex2D(_NormalMap,i.uv0)).rgb;</span>
+<span class="code-line">                <span class="tok-kw">float3x3</span> TBN = <span class="tok-kw">float3x3</span>(i.tDirWS,i.bDirWS,i.nDirWS);</span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirWS = normalize(mul(nDirTS,TBN));         <span class="tok-comment">//切线空间乘TBN矩阵转为世界空间</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirVS = mul(UNITY_MATRIX_V,<span class="tok-kw">float4</span>(nDirWS,0.0));<span class="tok-comment">//U_M_V矩阵是4维的，所以nDir强制转为4维，连连看只用了RG通道采样</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> vDirWS = normalize(_WorldSpaceCameraPos.xyz - i.posWS);</span>
+<span class="code-line">                <span class="tok-comment">//float3 vrDirWS = reflect( - vDirWS,nDirWS);</span></span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//中间值准备</span></span>
+<span class="code-line">                <span class="tok-comment">//注意这里！！！是对视图空间的rg进行映射而不是世界空间！！</span></span>
+<span class="code-line">                <span class="tok-kw">float2</span> matcapUV = nDirVS.rg;<span class="tok-comment">//  * 0.5 + 0.5;            //对采样的法线的rg通道进行remap到0-1范围内，以此作为uv信息</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> ndotv = dot(nDirWS,vDirWS);                       <span class="tok-comment">//菲涅尔</span></span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-kw">float</span> fnl = pow((1- ndotv),_fnlSpecular);               </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//光照模型</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> matcap = tex2D(_MatCap,matcapUV);</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-kw">float3</span> finalRGB = (matcap + fnl) * _envSpecular;</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//返回结果</span></span>
+<span class="code-line">                <span class="tok-kw">return</span> <span class="tok-kw">float4</span>(finalRGB,1.0);         <span class="tok-comment">//规范化，输出lambert1</span></span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            ENDCG</span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
+<span class="code-line">    FallBack "Diffuse"</span>
+<span class="code-line"> </span>
+<span class="code-line">    CustomEditor "ShaderForgeMaterialInspector"</span>
+<span class="code-line">}</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<hr>
+<h1>8.CubeMap</h1>
+<p>与matcap不同，这是真实反射贴图，而不是matcap采样模拟反射纹理</p>
+<blockquote><p>Matcap只用视图空间法线方向映射贴图//节省性能，方便风格化</p>
+<p>Cubemap用反射方向在在 6 张环境图上采样//更真实</p></blockquote>
+<pre class="code-block" data-lang="hlsl"><code class="language-hlsl"><span class="code-line">Shader "L0/L09/CUBEMAP" {                 <span class="tok-comment">//路径名</span></span>
+<span class="code-line"> </span>
+<span class="code-line">    Properties {                        <span class="tok-comment">//unity里inspector的参数</span></span>
+<span class="code-line">    <span class="tok-comment">///格式。_名字 (“面板名字”，类型)=默认值，并且VertexInput之前也要声明，或之前声明即可</span></span>
+<span class="code-line">    <span class="tok-comment">//起手下划线加大写</span></span>
+<span class="code-line">        _Occlusion ("AO贴图", 2D) = "bump" {}</span>
+<span class="code-line">        _NormalMap ("法线贴图", 2D) = "bump" {}</span>
+<span class="code-line">        _Cubemap ("CubeMap", Cube) = "_Skybox" {}</span>
+<span class="code-line">        _envSpecular ("环境镜面反射强度", Range(0, 5)) = 1</span>
+<span class="code-line">        _fnlSpecular ("菲涅尔次幂", Range(0, 100)) = 1</span>
+<span class="code-line">        _CubemapMIP ("CubeMap强度",Range(0,7)) = 1</span>
+<span class="code-line"> </span>
+<span class="code-line">    }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">    SubShader {</span>
+<span class="code-line">        Tags {</span>
+<span class="code-line">            "RenderType"="Opaque"</span>
+<span class="code-line">        }</span>
+<span class="code-line">        Pass {</span>
+<span class="code-line">            Name "FORWARD"</span>
+<span class="code-line">            Tags {</span>
+<span class="code-line">                "LightMode"="ForwardBase"</span>
+<span class="code-line">            }</span>
+<span class="code-line">            CGPROGRAM</span>
+<span class="code-line">            #pragma vertex vert</span>
+<span class="code-line">            #pragma fragment frag</span>
+<span class="code-line">            #include "UnityCG.cginc"</span>
+<span class="code-line">            #include "UnityPBSLighting.cginc"</span>
+<span class="code-line">            #include "UnityStandardBRDF.cginc"</span>
+<span class="code-line">            #pragma multi_compile_fwdbase_fullshadows</span>
+<span class="code-line">            #pragma target 3.0</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//声明参数</span></span>
+<span class="code-line">            uniform sampler2D _NormalMap;</span>
+<span class="code-line">            uniform samplerCUBE _Cubemap;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _envSpecular;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _fnlSpecular;</span>
+<span class="code-line">            uniform <span class="tok-kw">float</span> _CubemapMIP;</span>
+<span class="code-line">            uniform sampler2D _Occlusion;</span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexInput {                                    <span class="tok-comment">//输入结构</span></span>
+<span class="code-line">                <span class="tok-kw">float4</span> vertex : POSITION;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> normal : NORMAL;</span>
+<span class="code-line">                <span class="tok-kw">float4</span> tangent : TANGENT;</span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv0 : TEXCOORD0;</span>
+<span class="code-line">                <span class="tok-comment">//顶点，法线，切线（法线贴图必备），采样uv，</span></span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-kw">struct</span> VertexOutput {                                   <span class="tok-comment">//输出结构</span></span>
+<span class="code-line">                <span class="tok-kw">float2</span> uv0 : TEXCOORD0;</span>
+<span class="code-line">                <span class="tok-kw">float4</span> pos : SV_POSITION;                         <span class="tok-comment">//裁切空间，可以先理解为屏幕空间</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirWS : TEXCOORD1;                         <span class="tok-comment">//世界 物体法线位置</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> posWS : TEXCOORD2;                          <span class="tok-comment">//世界 顶点位置</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> tDirWS : TEXCOORD3;</span>
+<span class="code-line">                <span class="tok-kw">float3</span> bDirWS : TEXCOORD4;</span>
+<span class="code-line">                </span>
+<span class="code-line">            };</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输入》顶点Shader》输出</span></span>
+<span class="code-line">            VertexOutput vert (VertexInput v) {                     <span class="tok-comment">//顶点Shader</span></span>
+<span class="code-line">                VertexOutput o = (VertexOutput)0;</span>
+<span class="code-line">                o.pos = UnityObjectToClipPos( v.vertex );         <span class="tok-comment">//映射到屏幕空间的位置，Unity提供的方法</span></span>
+<span class="code-line">                o.posWS = mul(unity_ObjectToWorld,v.vertex);        <span class="tok-comment">//unity_ObjectToWorld是全小写的！！</span></span>
+<span class="code-line">                o.nDirWS = UnityObjectToWorldNormal(v.normal);      <span class="tok-comment">//本地转世界空间，Unity提供的方法</span></span>
+<span class="code-line">                o.uv0 = v.uv0;</span>
+<span class="code-line">                o.tDirWS = normalize( mul( unity_ObjectToWorld, <span class="tok-kw">float4</span>( v.tangent.xyz, 0.0 ) ).xyz );</span>
+<span class="code-line">                o.bDirWS = normalize(cross(o.nDirWS, o.tDirWS) * v.tangent.w);</span>
+<span class="code-line">                <span class="tok-kw">return</span> o;</span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line">            <span class="tok-comment">//输出》像素shader</span></span>
+<span class="code-line">            <span class="tok-kw">float4</span> frag(VertexOutput i) : COLOR {                   <span class="tok-comment">//像素shader</span></span>
+<span class="code-line">                <span class="tok-comment">//准备向量</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirTS = UnpackNormal(tex2D(_NormalMap,i.uv0)).rgb;</span>
+<span class="code-line">                <span class="tok-kw">float3x3</span> TBN = <span class="tok-kw">float3x3</span>(i.tDirWS,i.bDirWS,i.nDirWS);</span>
+<span class="code-line">                <span class="tok-kw">float3</span> nDirWS = normalize(mul(nDirTS,TBN));         <span class="tok-comment">//切线空间乘TBN矩阵转为世界空间</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> vDirWS = normalize(_WorldSpaceCameraPos.xyz - i.posWS);</span>
+<span class="code-line">                <span class="tok-kw">float3</span> vrDirWS = reflect( - vDirWS,nDirWS);</span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//中间值准备</span></span>
+<span class="code-line">                <span class="tok-kw">float</span> occlusion = tex2D(_Occlusion,i.uv0).r;</span>
+<span class="code-line">                <span class="tok-kw">float</span> ndotv = dot(nDirWS,vDirWS);                       <span class="tok-comment">//菲涅尔</span></span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-kw">float</span> fnl = pow((1- ndotv),_fnlSpecular);               </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-comment">//光照模型</span></span>
+<span class="code-line">                <span class="tok-kw">float3</span> cubemap0 = texCUBElod(_Cubemap,<span class="tok-kw">float4</span>(vrDirWS,_CubemapMIP));</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">                <span class="tok-kw">float3</span> finalRGB = cubemap0 * occlusion * _envSpecular + fnl;</span>
+<span class="code-line">                <span class="tok-comment">//返回结果</span></span>
+<span class="code-line">                <span class="tok-kw">return</span> <span class="tok-kw">float4</span>(finalRGB,1.0);         <span class="tok-comment">//规范化，输出lambert1</span></span>
+<span class="code-line">            }</span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line"> </span>
+<span class="code-line">            ENDCG</span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
+<span class="code-line">    FallBack "Diffuse"</span>
+<span class="code-line"> </span>
+<span class="code-line">    CustomEditor "ShaderForgeMaterialInspector"</span>
+<span class="code-line">}</span></code><button type="button" class="code-copy-btn">复制</button></pre>
+<hr>
+<h1>9.补充：切线空间的切线，副切线方向就是uv的坐标方向。Uv展的不一样，切线空间就不一样。</h1></div></article>
+        </main>
+      <footer class="site_footer">© 2023-2026 NINO</footer></div>
+    </div>
+    <script src="./js/site.config.js?v=5948f66cd5"></script>
+    <script src="./js/site.js?v=fc92ade8e0"></script>
+    <script src="./js/markdown.js?v=d199a19740"></script>
+    <script src="./js/blog.js?v=5168848268"></script>
+    <script src="./js/emoji.js?v=1a783ddf30"></script>
+  
+
+</body></html>

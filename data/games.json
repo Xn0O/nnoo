@@ -1,0 +1,253 @@
+{
+  "items": [
+    {
+      "id": "aio",
+      "title": "Aio",
+      "cover": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/aio/cover.webp",
+      "tags": [
+        "GameJam"
+      ],
+      "href": "./games/aio.html",
+      "detail": {
+        "eyebrow": "2026",
+        "tagline": "",
+        "hero": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/aio/itch/background.webp",
+        "heroAlt": "Aio 背景图",
+        "heroPosition": "center",
+        "cover": "",
+        "coverAlt": "",
+        "meta": [
+          {
+            "label": "类型",
+            "value": "战斗？"
+          },
+          {
+            "label": "平台",
+            "value": "浏览器 / Windows / macOS"
+          },
+          {
+            "label": "制作",
+            "value": "NINO"
+          }
+        ],
+        "description": [
+          "2026萌芽gamejam作品",
+          "https://gmhub.com/game/9401",
+          "https://nnoi.itch.io/aio",
+          "你将扮演一位天使，你的能力是挨打充能——没错，你得先学会挨打！嗯……那要怎么攻击？当然是把攒满的能量一口气释放出去！游戏名称其实是挨打的哎哦！（？）",
+          "基础操作：",
+          "WASD / 方向键 – 移动",
+          "空格 – 释放",
+          "交互操作：",
+          "E / 鼠标左键 – 下一页",
+          "Q / 鼠标右键 – 上一页",
+          "F1 – 跳过教程",
+          "ESC – 长按结束游戏",
+          "音乐与音效：",
+          "[](https://chajamakesmusic.itch.io/cute-and-silly-rpg-music-pack)",
+          "[](https://sonatina.itch.io/cosy-cafe-bgms)",
+          "[](https://www.bilibili.com/video/BV1r64y1Z7q3)",
+          "[](https://youtu.be/sd1mQHTsVks)"
+        ],
+        "screenshotsTitle": "游戏截图",
+        "screenshots": [
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/aio/itch/screenshot-01.webp",
+            "alt": "Aio 游戏截图 1"
+          },
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/aio/itch/screenshot-02.webp",
+            "alt": "Aio 游戏截图 2"
+          },
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/aio/itch/screenshot-03.webp",
+            "alt": "Aio 游戏截图 3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ghostwish",
+      "title": "GhostWish",
+      "cover": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/ghostwish/cover.webp",
+      "tags": [
+        "GameJam"
+      ],
+      "href": "./games/ghostwish.html",
+      "detail": {
+        "eyebrow": "Ludum Dare58",
+        "tagline": "",
+        "hero": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/ghostwish/itch/background.webp",
+        "heroAlt": "GhostWish 背景图",
+        "heroPosition": "center",
+        "cover": "",
+        "coverAlt": "",
+        "meta": [
+          {
+            "label": "类型",
+            "value": "平台跳跃"
+          },
+          {
+            "label": "平台",
+            "value": "Windows"
+          },
+          {
+            "label": "制作",
+            "value": "NINO"
+          }
+        ],
+        "description": [
+          "Ludum Dare58 Jam作品。",
+          "WASD 移动",
+          "E 交互 / 对话",
+          "Q 快速对话",
+          "空格 跳跃",
+          "鼠标 环顾四周",
+          "ESC – 短按：切换操作说明 | 长按：退出游戏",
+          "支持 Xbox 手柄。按 Menu 键或 ESC 查看游戏操作。",
+          "游戏里有一些轻度解谜（也许）和平台跳跃段落。希望你喜欢。"
+        ],
+        "screenshotsTitle": "游戏截图",
+        "screenshots": [
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/ghostwish/itch/screenshot-02.webp",
+            "alt": "GhostWish 游戏截图 2"
+          },
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/ghostwish/itch/screenshot-03.webp",
+            "alt": "GhostWish 游戏截图 3"
+          },
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/ghostwish/itch/screenshot-04.webp",
+            "alt": "GhostWish 游戏截图 4"
+          }
+        ]
+      }
+    },
+    {
+      "id": "alien-registry",
+      "title": "Alien-Registry",
+      "cover": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/alien-registry.webp",
+      "tags": [
+        "GameJam"
+      ],
+      "href": "./games/alien-registry.html",
+      "detail": {
+        "eyebrow": "Ludum Dare59",
+        "tagline": "",
+        "hero": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/alien-registry/cover.webp",
+        "heroAlt": "Alien-Registry 游戏画面",
+        "heroPosition": "center",
+        "cover": "",
+        "coverAlt": "",
+        "meta": [
+          {
+            "label": "平台",
+            "value": "浏览器 / Windows / macOS"
+          },
+          {
+            "label": "制作",
+            "value": "biba2012 (@biba2012) , SleepyAppleKitty (@sleepyapplekitty) , yigeng (@yigeng) , xxxxx sky (@xxxxx-sky) , ipomelo (@ipomelo) *,NNO1 (@nno1)"
+          }
+        ],
+        "description": [
+          "Ludum Dare 59作品。",
+          "**[核心循环]**",
+          "当候选人抵达你的工作站时，你必须透过表象去观察。利用你的高科技工具包，在星辰之间架起桥梁：",
+          "深度扫描：分析发光的生物特征信号，发掘隐藏特质。",
+          "X 光与检查：透视他们的骨架，翻查他们的背包，寻找关于其出身与需求的线索。",
+          "问询：通过对话了解他们的过去、技能，以及他们真正属于哪里。",
+          "**[掌握信号]**",
+          "在这个宇宙中，一切皆是信号。每个角色都会发出一种独特的频率——一种定义其身份的独特“信号”。要想成功，你必须超越泛泛的分类。你需要真正掌握解读这些信号的艺术，从而判断哪颗星球能给予他们应得的职业与生活。",
+          "https://ldjam.com/events/ludum-dare/59/alien-registry"
+        ],
+        "screenshotsTitle": "游戏截图",
+        "screenshots": [
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/alien-registry/shots/01.webp",
+            "alt": "Alien-Registry 截图 1"
+          },
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/alien-registry/shots/02.webp",
+            "alt": "Alien-Registry 截图 2"
+          },
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/alien-registry/shots/03.webp",
+            "alt": "Alien-Registry 截图 3"
+          },
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/alien-registry/shots/04.webp",
+            "alt": "Alien-Registry 截图 4"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bababoi",
+      "title": "把把博弈王",
+      "cover": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/bababoi.webp",
+      "tags": [
+        "GameJam"
+      ],
+      "href": "https://www.3839.com/a/200194.htm",
+      "detail": {
+        "eyebrow": "",
+        "tagline": "",
+        "hero": "",
+        "heroAlt": "",
+        "heroPosition": "center",
+        "cover": "",
+        "coverAlt": "",
+        "meta": [],
+        "description": [],
+        "screenshotsTitle": "游戏截图",
+        "screenshots": []
+      }
+    },
+    {
+      "id": "zhutu",
+      "title": "烛途",
+      "cover": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/zhutu.webp",
+      "tags": [
+        "GameJam"
+      ],
+      "href": "./games/zhutu.html",
+      "detail": {
+        "eyebrow": "2026Cigagamejam",
+        "tagline": "",
+        "hero": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/zhutu/cover.webp",
+        "heroAlt": "烛途 游戏画面",
+        "heroPosition": "center",
+        "cover": "",
+        "coverAlt": "",
+        "meta": [
+          {
+            "label": "平台",
+            "value": "Windows / macOS"
+          },
+          {
+            "label": "团队",
+            "value": "会做完的"
+          }
+        ],
+        "description": [
+          "误入未知之地的小蜡烛们，用自身的蜡与火为其它小蜡烛铺路。通过燃烧自我的接力，寻找伙伴，寻找出路……",
+          "《烛途》是一款2D平台冒险解谜游戏，玩家将扮演小蜡烛们在未知神秘之地中寻找伙伴和出路。",
+          "游戏使用键鼠进行操作，具体键位可在游戏内指引获知。",
+          "https://gmhub.com/game/10450"
+        ],
+        "screenshotsTitle": "游戏截图",
+        "screenshots": [
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/zhutu/shots/02.webp",
+            "alt": "烛途 截图 2"
+          },
+          {
+            "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/games/zhutu/shots/03.webp",
+            "alt": "烛途 截图 3"
+          }
+        ]
+      }
+    }
+  ]
+}

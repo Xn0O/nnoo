@@ -1,0 +1,87 @@
+{
+  "items": [
+    {
+      "name": "happy",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/happy.webp",
+      "alt": "开心"
+    },
+    {
+      "name": "sad",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/sad.webp",
+      "alt": "难过"
+    },
+    {
+      "name": "cry",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/cry.webp",
+      "alt": "大哭"
+    },
+    {
+      "name": "angry",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/angry.webp",
+      "alt": "生气"
+    },
+    {
+      "name": "confuse",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/confuse.webp",
+      "alt": "困惑",
+      "aliases": [
+        "confused"
+      ]
+    },
+    {
+      "name": "sleepy",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/sleepy.webp",
+      "alt": "困倦",
+      "aliases": [
+        "tired"
+      ]
+    },
+    {
+      "name": "ghost",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/ghost.webp",
+      "alt": "幽灵"
+    },
+    {
+      "name": "star6",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/star6.webp",
+      "alt": "星星",
+      "aliases": [
+        "star"
+      ]
+    },
+    {
+      "name": "heart",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/heart.webp",
+      "alt": "爱心",
+      "aliases": [
+        "love"
+      ]
+    },
+    {
+      "name": "suprised",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/suprised.webp",
+      "alt": "惊讶",
+      "aliases": [
+        "surprised"
+      ]
+    },
+    {
+      "name": "_star6",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/_star6.webp",
+      "alt": "反色星星"
+    },
+    {
+      "name": "icon",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/favicon.png",
+      "alt": "站点图标"
+    },
+    {
+      "name": "xn0",
+      "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/emoji/xn0.webp",
+      "alt": "xn0猫",
+      "aliases": [
+        "xn0mao"
+      ]
+    }
+  ]
+}

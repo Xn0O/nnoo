@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "heading": "About",
+  "layout": "row",
+  "avatar": {
+    "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/nnoo.webp",
+    "alt": "NINO 的头像",
+    "size": 120
+  },
+  "bubble": {
+    "src": "https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/bubble.webp"
+  },
+  "name": ":star6:NINOUIU:star6:",
+  "subtitle": "业余的游戏开发者",
+  "bio": [
+    "你好！我是nino正在学习如何制作有趣以及独特的游戏们. ",
+    "本站点由三只猫管理：",
+    "nin猫:happy:/uiu猫:sleepy:/xn0猫:xn0:"
+  ]
+}

@@ -1,0 +1,50 @@
+# ---------- 搜索引擎：不收录 ----------
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: Baiduspider
+User-agent: Sogou web spider
+User-agent: 360Spider
+User-agent: YisouSpider
+User-agent: bytespider-search
+User-agent: YandexBot
+User-agent: DuckDuckBot
+Disallow: /
+
+# ---------- AI 搜索（生成式答案）：不抓取 ----------
+User-agent: OAI-SearchBot
+User-agent: PerplexityBot
+User-agent: YouBot
+User-agent: Bingbot-ai
+Disallow: /
+
+# ---------- 社交媒体（这也一并禁止，链接预览不会生成） ----------
+User-agent: facebookexternalhit
+User-agent: Twitterbot
+User-agent: TelegramBot
+User-agent: Discordbot
+User-agent: Slackbot
+User-agent: LinkedInBot
+User-agent: WhatsApp
+User-agent: Pinterest
+User-agent: redditbot
+Disallow: /
+
+# ---------- AI 训练：禁止 ----------
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-Web
+User-agent: anthropic-ai
+User-agent: Google-Extended
+User-agent: CCBot
+User-agent: Bytespider
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: Amazonbot
+User-agent: cohere-ai
+User-agent: Diffbot
+Disallow: /
+
+# ---------- 其余一律不抓 ----------
+User-agent: *
+Disallow: /

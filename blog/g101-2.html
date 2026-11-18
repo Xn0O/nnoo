@@ -1,0 +1,235 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+    <base href="../" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/favicon.png">
+    <link rel="icon" href="./favicon.ico" sizes="any">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>GAMES101.L5-L6 — ninouiu</title>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ninouiu">
+    <meta property="og:title" content="GAMES101.L5-L6 — ninouiu">
+    <meta property="og:description" content="GAMES101.L5-L6学习笔记">
+    <meta property="og:image" content="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp">
+    <meta property="og:url" content="https://game.ninouiu.com/blog/g101-2.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="./styles/site.css?v=06c3558828">
+  </head>
+  <body data-title="Blog" data-post-id="g101-2">
+    <div class="user_page_wrap">
+      <div class="user_page">
+        <header><div class="inner_column text_header"><h1><a href="./index.html"><img class="site_logo" src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt="ninouiu"></a></h1></div></header><div class="site_nav_sentinel" aria-hidden="true"></div><nav class="site_nav"><a class="site_nav_logo" href="./index.html" aria-label="ninouiu"><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/site/logo.webp" alt=""></a><a href="./index.html">Home</a><a href="./dev.html">Dev</a><a href="./blog.html" class="active">Blog</a></nav>
+        <main class="inner_column page_content blog_page">
+          <div class="blog_list" id="blog-list" hidden=""></div>
+          <article class="blog_post" id="blog-post"><p class="blog_date">2026.06.08</p><h1 class="blog_title">GAMES101.L5-L6</h1><div class="blog_body markdown-content"><p>主要有以下内容：</p>
+<ul>
+<li>1.L5：光栅化</li>
+<li>2.L6：抗锯齿</li>
+</ul>
+<hr>
+<h1>L5：光栅化</h1>
+<p>实现投影后，怎么绘制在屏幕上？</p>
+<ul>
+<li>1. 视锥</li>
+<li>2. 视口</li>
+<li>3. 光栅化</li>
+</ul>
+<h2>1.frustum视锥：￼</h2>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/1.webp" alt="" loading="lazy"></p>
+<p>定义：</p>
+<p>1.宽高比</p>
+<p>2.垂直可视角度：越小越类似正交视角（游戏里的filed of view y）</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/2.webp" alt="" loading="lazy"></p>
+<p>我们向-z看，所以n取的是绝对值</p>
+<p>知道任意的都可以得到其他的。</p>
+<p>MVP之后？</p>
+<p>-1，1矩形的投影怎么绘制在屏幕上？</p>
+<p>定义：</p>
+<p>1.像素</p>
+<p>2.屏幕空间，像素用整数坐标表示</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/3.webp" alt="" loading="lazy"></p>
+<p>虽然像素用整数坐标（左下角），但是实际中心在：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/4.webp" alt="" loading="lazy"></p>
+<h2>2.视口变换：</h2>
+<p>屏幕空间即（0，0）-&gt;（width，height）范围</p>
+<p>把矩形拉到这个屏幕大小。</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/5.webp" alt="" loading="lazy"></p>
+<p>矩形是2x2的，所以我们先让他放大到widthxheight，各放大1/2倍的长宽，并且因为屏幕的原点在左下角，我们需要把矩形平移到和屏幕一样左下角是原点。</p>
+<p>这就是我们的变换矩阵：</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/6.webp" alt="" loading="lazy"></p>
+<h2>3.光栅化</h2>
+<p>简单的成像设备：</p>
+<p></p><details class="foldable"><summary>展开折叠内容</summary><p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/7.webp" alt="" loading="lazy"></p>
+<p>CRT，逐行扫描，为了偷懒我们可以一时刻只画奇数行下一时刻只画偶数行。隔行扫描。这种方法现在还用在一些视频压缩方法里，但容易出现屏幕撕裂的现象。</p>
+<p>现在的显示方式：</p>
+<p>通过gpu/cpu存放的屏幕区域的颜色信息来映射屏幕。</p>
+<p>LCD，</p>
+<p>LED，发光二极管</p>
+<p>水墨屏，</p></details><p></p>
+<p>三角形：最基础的多边形，任何多边形都可以拆成三角形，其内部一定是平面的，4个点不一定都在同一平面。</p>
+<p>定义三角形的三个点，可以进行一个渐变或者插值。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/8.webp" alt="" loading="lazy"></p>
+<p>￼</p>
+<p>怎么变成像素/光栅化。</p>
+<p>1.简单的：采样</p>
+<p>把函数离散化。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/9.webp" alt="" loading="lazy"></p>
+<p>利用像素中心对屏幕空间采样。</p>
+<p>定义不同函数在屏幕空间的像素中心的采样值。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/10.webp" alt="" loading="lazy"></p>
+<p>判断像素中心点是否在三角形内部。我们定义一个inside函数：在内输出1，在外输出0。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/11.webp" alt="" loading="lazy"></p>
+<p>二维遍历每一个像素中心坐标，判断是否在三角形内，是就绘制1，否就0，也可以把输出换成颜色。</p>
+<ul>
+<li>实现inside函数：</li>
+</ul>
+<p>之前向量已经提到了判断左右-内外的方法。利用叉乘。</p>
+<p>同侧则为内，不同侧则为外。</p>
+<p>若点在三角形上怎么办？可以自己特殊处理或者不做处理。自己定义。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/12.webp" alt="" loading="lazy"></p>
+<p>我们是否需要遍历屏幕所有像素？</p>
+<p>只需要遍历包围盒即可。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/13.webp" alt="" loading="lazy"></p>
+<p>其他的方法：每行只读取三角形最左到最右的位置。不容易实现，但对于窄长的三角形很节省，特殊情况特殊方法。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/14.webp" alt="" loading="lazy"></p>
+<p><strong>get：</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/15.webp" alt="" loading="lazy"></p>
+<p>可以看到有明显的锯齿。</p>
+<p>这是因为采样不够。我们可以通过抗锯齿/防走样来解决。</p>
+<hr>
+<h1>L6：抗锯齿/反走样</h1>
+<ul>
+<li>1.反走样/抗锯齿</li>
+<li>2.深度缓存/z-buffering（好像没讲到）</li>
+</ul>
+<p>总结一下之前的内容：</p>
+<p>MVP变换-&gt;视口变换（-1，1到屏幕大小）-&gt;光栅化（绘制到屏幕上）</p>
+<h2>反走样/抗锯齿</h2>
+<p>我们可以对像素采样，也可以对时间采样。</p>
+<h3>1.采样产生的问题</h3>
+<ul>
+<li>1.有锯齿</li>
+<li>2.摩尔纹</li>
+<li>3.车轮效应</li>
+</ul>
+<p>（观察向前走的车，人眼有可能看到车轮向后滚动的现象，采样速度跟不上变化的速度）</p>
+<p>之前我们采样：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/16.webp" alt="" loading="lazy"></p>
+<p>为了反走样，我们先对信号进行一个模糊（滤波）处理：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/17.webp" alt="" loading="lazy"></p>
+<p>效果变化如图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/18.webp" alt="" loading="lazy"></p>
+<p>我们能不能先采样再模糊？</p>
+<p>不行！看图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/19.webp" alt="" loading="lazy"></p>
+<p>左图是先采样再模糊</p>
+<h3>2.为什么？</h3>
+<p>频域：</p>
+<p>先从简单的正余弦开始：</p>
+<p>f频率</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/20.webp" alt="" loading="lazy"></p>
+<p>傅立叶级数展开：用多个三角函数的组合近似其他函数。如方波。项越多越相似。任何一个函数都可以分解成各种不同的频率。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/21.webp" alt="" loading="lazy"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/22.webp" alt="" loading="lazy"></p>
+<p>傅立叶变换：</p>
+<p>把函数变成不同频率的段。</p>
+<p>正向：傅立叶变换</p>
+<p>反向：反傅立叶变换</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/23.webp" alt="" loading="lazy"></p>
+<p>我们用相同的采样方式对下图图不同频率的函数进行采样：</p>
+<p>如果我们需要用这个采样来恢复原函数？</p>
+<p>比如f1的频率和采样的间隔差不多，我们能够很好的复原原函数对吧。</p>
+<p>但是如果用f5的采样来复原函数呢？</p>
+<p>这个时候我们的采样跟不上其频率的变化速度，所以我们没有办法恢复到原始函数的样子。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/24.webp" alt="" loading="lazy"></p>
+<p>如果我们选择了不合适的采样频率：</p>
+<p>蓝色的函数进行这样的采样，但复原出来的函数却是黑色的这条函数，他俩完全不一样。</p>
+<p>同样采样方法对两种不同频率进行采样，得到的结果无法区分他们，我们就叫做走样。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/25.webp" alt="" loading="lazy"></p>
+<p>滤波：</p>
+<p>去掉一些频率。</p>
+<p>我们可以把一张图片从时域变换到频域。</p>
+<p>如图：左-&gt;右</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/26.webp" alt="" loading="lazy"></p>
+<p>中心为低频，四周为高频，通过亮度可以分析频率的分布，大多分布在低频范围。</p>
+<p>假如进行这样的操作：</p>
+<p>抹去低频部分再逆傅立叶变换，得到图像边界的信息。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/27.webp" alt="" loading="lazy"></p>
+<p>这种滤波叫做高通滤波，保留高频率的数据。</p>
+<p>为什么留下高频会显示边界？</p>
+<p>因为在边界处的信息与周围的信息会发生突变，这个突变就是高频信息。</p>
+<p>那么低通滤波长什么样：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/28.webp" alt="" loading="lazy"></p>
+<p>中通（？）滤波：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/29.webp" alt="" loading="lazy"></p>
+<p>这些操作都是数字图像处理的内容。</p>
+<p>后面的涉及信号处理相关的内容：</p>
+<p>卷积：</p>
+<p>简单的例子：</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/30.webp" alt="" loading="lazy"></p>
+<p>对周围3个数取加权平均，在周围的区域取平均。</p>
+<p>卷积定理：</p>
+<p>时域的卷积等于频域的乘积</p>
+<p>时域上：对图片进行平均值的卷积操作</p>
+<p>频域上：频谱相乘（对应元素相乘）</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/31.webp" alt="" loading="lazy"></p>
+<p>低通滤波器：</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/32.webp" alt="" loading="lazy"></p>
+<p>作用是取平均，保证亮度的不变。</p>
+<p>上面的是box滤波器。</p>
+<p>这是box对应的时域以及频域上的样子：</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/33.webp" alt="" loading="lazy"></p>
+<p>如果这个box变大了，那么频域上的白色区域是变大还是变小了呢？</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/34.webp" alt="" loading="lazy"></p>
+<p>答案是变小了，我们可以想象一个极限的情况，就是这个box非常非常小，那我们对图片做滤波，相当于什么都没做，他与其他频谱相乘能够保留大部分频率。也就是频域图的白色区域更多，即几乎所有频率都能通过。</p>
+<p>再解释一下，就是白色部分相当于是保留的低频，黑色部分是被切掉的高频。</p>
+<hr>
+<p>采样在频率上怎么理解：</p>
+<p>(c)是冲击函数，即只在某个间隔的各个点上有值，其余地方是空的。</p>
+<p>通过(c)相乘可以得到离散的点。</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/35.webp" alt="" loading="lazy"></p>
+<p>采样就是重复原始信号的频谱。右图。</p>
+<p>如果采样的频率不够快，导致走样，有信号的混叠：</p>
+<p>时域相乘，频域卷积，采样后信号的频谱，就是把原始频谱 (a) 复制粘贴到 (c) 的每一个冲击点上。频率低也就是频谱的点的间隔很小，导致复制粘贴密集，会有重叠的信号。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/36.webp" alt="" loading="lazy"></p>
+<h3>3.怎么反采样/抗锯齿？</h3>
+<p>让我们回到正题，怎么解决锯齿问题。</p>
+<p>比如我们的显示器像素很低，也就是采样率低。</p>
+<p>我们可以通过增加像素来提高采样率。</p>
+<p>但是很显然我们想要在当前分辨率上进行抗锯齿就不能通过增加像素来解决。</p>
+<hr>
+<p>解决办法就是：</p>
+<p>1.把高频信息拿掉（让边缘变柔和）</p>
+<p>2.再采样</p>
+<p>如图，虚线方框外的部分是高频信号，我们把它砍掉：</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/37.webp" alt="" loading="lazy"></p>
+<p> 之后再采样时，就不会发生重叠了。</p>
+<p>实际上，我们怎么进行模糊？</p>
+<p>就是一个滤波器，把覆盖部分求平均：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/38.webp" alt="" loading="lazy"></p>
+<p>MSAA：</p>
+<p>对一个像素内部进行多个采样点，如2x2，近似图像在像素的覆盖率。</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/39.webp" alt="" loading="lazy"></p>
+<p>所以灰度分为1/4,2/4,3/4,4/4</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/40.webp" alt="" loading="lazy"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/41.webp" alt="" loading="lazy"></p>
+<p>代价是增大了2x2=4倍的计算量。</p>
+<p>实际上，游戏里的msaa并不是对每个像素点都采样相同多的采样点，会有不平均的采样。所以性能并不会下降那么多。</p>
+<p>其他的抗锯齿方法：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/42.webp" alt="" loading="lazy"></p>
+<p>FXAA与增加采样点无关：通过图像匹配找到锯齿部分，把边界换成没有锯齿的边界。</p>
+<p>TAA：时间相关，静态场景，我们复用上一帧感知到的结果。相当于把MSAA的采样用在时间上？动态的用的与TAA类似。</p>
+<p>还有DLSS，用的深度学习方法，把扩展的分辨率的像素点的颜色猜出来。</p>
+<p>￼<img src="https://cdn.jsdelivr.net/gh/Xn0O/nnoo@main/assets/blog/g101-2/43.webp" alt="" loading="lazy"></p></div></article>
+        </main>
+      <footer class="site_footer">© 2023-2026 NINO</footer></div>
+    </div>
+    <script src="./js/site.config.js?v=5948f66cd5"></script>
+    <script src="./js/site.js?v=fc92ade8e0"></script>
+    <script src="./js/markdown.js?v=d199a19740"></script>
+    <script src="./js/blog.js?v=5168848268"></script>
+    <script src="./js/emoji.js?v=1a783ddf30"></script>
+  
+
+</body></html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+  <title>Game — ninouiu</title>
+  <script>
+    (function () {
+      var id = new URLSearchParams(location.search).get("game");
+      var known = ["aio","ghostwish","alien-registry","zhutu"];
+      location.replace(id && known.indexOf(id) !== -1 ? "./games/" + id + ".html" : "./index.html");
+    })();
+  </script>
+</head>
+<body>
+  <p><a href="./index.html">返回首页</a></p>
+</body>
+</html>
